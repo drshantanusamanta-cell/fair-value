@@ -6,8 +6,11 @@ Run:  streamlit run app.py
 """
 from __future__ import annotations
 
+import base64
+import json
 import math
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -41,11 +44,49 @@ def up(fv, price):
     return fv / price - 1 if finite(fv) and finite(price) and price else float("nan")
 
 
+SECRETS_FILE = Path(__file__).parent / ".streamlit" / "secrets.toml"
+
+
 def secret(section: str, key: str) -> str:
+    """Session override (set from the 🔐 Secrets tab) → st.secrets (secrets.toml / Streamlit Cloud)."""
+    override = st.session_state.get(f"_secret_{section}_{key}")
+    if override:
+        return str(override)
     try:
         return str(st.secrets[section][key])
     except Exception:
         return ""
+
+
+def save_secrets_section(section: str, values: dict, path: Path = SECRETS_FILE) -> None:
+    """Rewrite only [section] in secrets.toml, keeping every other section intact."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    kept, skipping = [], False
+    for line in lines:
+        s = line.strip()
+        if s.startswith("[") and s.endswith("]"):
+            skipping = s.strip("[] ") == section
+        if not skipping:
+            kept.append(line)
+    while kept and not kept[-1].strip():
+        kept.pop()
+    block = [f"[{section}]"] + [f"{k} = {json.dumps(str(val))}" for k, val in values.items()]
+    path.write_text("\n".join(kept + ([""] if kept else []) + block) + "\n", encoding="utf-8")
+
+
+def mask(s: str) -> str:
+    return "—" if not s else ("•" * 8 + s[-4:] if len(s) > 8 else "•" * len(s))
+
+
+def jwt_expiry(token: str) -> datetime | None:
+    """Dhan access tokens are JWTs — read the `exp` claim (no signature check, display only)."""
+    try:
+        payload = token.split(".")[1]
+        claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+        return datetime.fromtimestamp(int(claims["exp"]))
+    except Exception:
+        return None
 
 
 # ───────────────────────────── cached fetchers ─────────────────────────────
@@ -90,12 +131,12 @@ with st.sidebar:
         use_yf = st.toggle("yfinance", value=True)
         use_dhan = st.toggle("Dhan company info", value=True)
 
-    with st.expander("Dhan API credentials", expanded=not secret("dhan", "access_token")):
-        dhan_cid = st.text_input("Client ID", value=secret("dhan", "client_id"))
-        dhan_tok = st.text_input("Access token", value=secret("dhan", "access_token"), type="password")
+    dhan_cid = secret("dhan", "client_id")
+    dhan_tok = secret("dhan", "access_token")
+    with st.expander("Dhan API", expanded=False):
+        st.caption(f"Credentials: {'✅ set' if dhan_tok else '⚠️ not set'} — view or edit them in the **🔐 Secrets** tab.")
         sid_override = st.text_input("Security ID override (optional)", value="")
-        st.caption("Company info is a Dhan **Data API** endpoint — it needs an active Data API subscription. "
-                   "Store credentials in `.streamlit/secrets.toml` to avoid typing them.")
+        st.caption("Company info is a Dhan **Data API** endpoint — it needs an active Data API subscription.")
 
     st.subheader("Assumptions")
     rf = st.number_input("Risk-free rate — 10Y G-Sec %", value=6.50, step=0.05, format="%.2f") / 100
@@ -119,7 +160,7 @@ with st.spinner(f"Fetching {symbol} from the enabled sources…"):
     dh: dict = {"ok": False, "error": "disabled"}
     if use_dhan:
         if not dhan_tok:
-            dh = {"ok": False, "error": "No access token — add it in the sidebar or secrets.toml"}
+            dh = {"ok": False, "error": "No access token — add it in the 🔐 Secrets tab"}
         else:
             sid, dname = (sid_override.strip(), None) if sid_override.strip() else ds.dhan_security_id(get_master(), symbol)
             if not sid:
@@ -151,8 +192,61 @@ if not finite(vals.get("price")):
     st.stop()
 
 tabs = st.tabs(["📊 Summary", "🧾 Inputs & sources", "💵 DCF", "🔁 Reverse DCF", "🏦 DDM & RI",
-                "📈 Multiples", "📐 Graham & EPV", "🧩 SOTP", "🏢 Company (Dhan)"])
+                "📈 Multiples", "📐 Graham & EPV", "🧩 SOTP", "🏢 Company (Dhan)", "🔐 Secrets"])
 results: dict[str, dict] = {}
+
+# ───────────────────────────── Secrets ─────────────────────────────
+with tabs[9]:
+    st.subheader("Dhan API credentials")
+    tok_src = ("this session" if st.session_state.get("_secret_dhan_access_token")
+               else "secrets.toml / Streamlit Cloud secrets" if dhan_tok else "not set")
+    exp = jwt_expiry(dhan_tok) if dhan_tok else None
+    a, b, c = st.columns(3)
+    a.metric("Client ID", dhan_cid or "—")
+    b.metric("Access token", mask(dhan_tok), tok_src, delta_color="off")
+    if exp:
+        left = exp - datetime.now()
+        c.metric("Token expires", f"{exp:%d %b %Y %H:%M}",
+                 "EXPIRED" if left.total_seconds() <= 0 else f"in {left.days}d {left.seconds // 3600}h",
+                 delta_color="inverse" if left.total_seconds() <= 0 else "off")
+    else:
+        c.metric("Token expires", "—")
+
+    with st.form("dhan_secrets_form"):
+        new_cid = st.text_input("Client ID", value=dhan_cid)
+        new_tok = st.text_input("Access token", value="", type="password",
+                                placeholder="Leave blank to keep the current token")
+        persist = st.checkbox(f"Save to `{SECRETS_FILE.relative_to(Path(__file__).parent)}`", value=True,
+                              help="Unticked = use for this browser session only.")
+        save = st.form_submit_button("💾 Save credentials", type="primary")
+    if save:
+        tok_final = new_tok.strip() or dhan_tok
+        if not tok_final:
+            st.error("Enter an access token.")
+        else:
+            st.session_state["_secret_dhan_client_id"] = new_cid.strip()
+            st.session_state["_secret_dhan_access_token"] = tok_final
+            if persist:
+                try:
+                    save_secrets_section("dhan", {"client_id": new_cid.strip(), "access_token": tok_final})
+                    st.session_state["_secrets_msg"] = f"Saved to {SECRETS_FILE}"
+                except Exception as e:
+                    st.session_state["_secrets_msg"] = f"Using for this session only — could not write the file ({e})"
+            else:
+                st.session_state["_secrets_msg"] = "Using for this session only"
+            st.rerun()
+    if st.session_state.get("_secrets_msg"):
+        st.success(st.session_state.pop("_secrets_msg"))
+    if st.session_state.get("_secret_dhan_access_token") and st.button("↩️ Discard session override"):
+        st.session_state.pop("_secret_dhan_access_token", None)
+        st.session_state.pop("_secret_dhan_client_id", None)
+        st.rerun()
+
+    st.caption("**Streamlit Community Cloud:** the app's disk is wiped on reboot, so a token saved here lasts only "
+               "until the app restarts. For a permanent change, paste this into **App settings → Secrets**:")
+    st.code(f'[dhan]\nclient_id = "{dhan_cid or "YOUR_CLIENT_ID"}"\naccess_token = "PASTE_YOUR_TOKEN_HERE"', language="toml")
+    st.caption("Dhan access tokens expire after about 24 h — when the expiry above turns red, generate a new one "
+               "at web.dhan.co → Profile → DhanHQ Trading APIs and save it here. The token is never shown in full.")
 
 # ───────────────────────────── Inputs & sources ─────────────────────────────
 CR_FIELDS = {"market_cap", "ebit", "interest", "revenue", "ebitda", "fcf", "cfo", "debt", "cash", "shares"}
