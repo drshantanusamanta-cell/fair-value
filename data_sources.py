@@ -71,6 +71,10 @@ def _parse_data_table(table) -> pd.DataFrame | None:
         if not cells:
             continue
         vals = [c.get_text(" ", strip=True) for c in cells]
+        # Tables without <thead> (e.g. Screener's peer table) carry the header as an all-<th> first row
+        if not headers and not rows and all(c.name == "th" for c in cells):
+            headers = vals
+            continue
         rows.append(vals)
     if not rows:
         return None
@@ -155,8 +159,14 @@ def fetch_screener(symbol: str, prefer_consolidated: bool = True, timeout: int =
                     peers = _parse_data_table(psoup.find("table"))
                     if peers is not None and not peers.empty:
                         out["peers"] = peers
-            except Exception:
-                pass
+                    else:
+                        out["peers_error"] = "peer table empty or unparseable"
+                else:
+                    out["peers_error"] = f"HTTP {pr.status_code}"
+            except Exception as e:
+                out["peers_error"] = f"{type(e).__name__}: {e}"
+        else:
+            out["peers_error"] = "company warehouse ID not found on the page"
         return out
     out["error"] = last_err or "Screener returned no data"
     return out
@@ -247,9 +257,12 @@ def dhan_security_id(master: pd.DataFrame | None, symbol: str) -> tuple[str | No
 
 def fetch_dhan_company_info(security_id: str, access_token: str, client_id: str,
                             sections: tuple[str, ...] = ("CO", "RATIOS", "SHP"), timeout: int = 20) -> dict:
-    """POST /v2/data/companyinfo. Needs an active Dhan Data API subscription.
+    """POST /v2/data/companyinfo — EXPERIMENTAL / UNVERIFIED.
 
-    Tries all sections in one call; if that is refused, retries one section at a time and merges.
+    This endpoint and its request shape are NOT in Dhan's official docs (docs.dhanhq.co) or the official
+    `dhanhq` Python SDK (v2.3.0). They come only from the unofficial `dhan-rs` crate, which describes itself as
+    AI-generated and not tested against the live API. Treat a failure here as "endpoint may not exist",
+    not as a bug in your credentials. Tries all sections in one call, then one section at a time.
     """
     out: dict[str, Any] = {"ok": False, "error": None, "status": None, "data": {}, "raw": None}
     if not (security_id and access_token):
