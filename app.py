@@ -172,14 +172,16 @@ with st.sidebar:
         use_scr = st.toggle("Screener.in", value=True)
         consolidated = st.toggle("Prefer consolidated financials", value=True)
         use_yf = st.toggle("yfinance", value=True)
-        use_dhan = st.toggle("Dhan company info", value=True)
+        use_dhan = st.toggle("Dhan company info (experimental)", value=True,
+                             help="POST /v2/data/companyinfo is not in Dhan's official docs or SDK — it may not exist.")
 
     dhan_cid = secret("dhan", "client_id")
     dhan_tok = secret("dhan", "access_token")
     with st.expander("Dhan API", expanded=False):
         st.caption(f"Credentials: {'✅ set' if dhan_tok else '⚠️ not set'} — view or edit them in the **🔐 Secrets** tab.")
         sid_override = st.text_input("Security ID override (optional)", value="")
-        st.caption("Company info is a Dhan **Data API** endpoint — it needs an active Data API subscription.")
+        st.caption("⚠️ Experimental: the company-info endpoint is not in Dhan's official docs; it may fail even "
+                   "with valid credentials.")
 
     st.subheader("Assumptions")
     rf = st.number_input("Risk-free rate — 10Y G-Sec %", value=6.50, step=0.05, format="%.2f") / 100
@@ -228,7 +230,7 @@ badge = {True: "🟢", False: "🔴"}
 s1, s2, s3 = st.columns(3)
 s1.markdown(f"{badge[bool(yfd.get('ok'))]} **yfinance**  \n<small>{yfd.get('error') or 'ok'}</small>", unsafe_allow_html=True)
 s2.markdown(f"{badge[bool(scr.get('ok'))]} **Screener.in**  \n<small>{scr.get('error') or scr.get('url') or 'ok'}</small>", unsafe_allow_html=True)
-s3.markdown(f"{badge[bool(dh.get('ok'))]} **Dhan company info**  \n<small>{dh.get('error') or ('security ID ' + str(dh.get('security_id')))}</small>", unsafe_allow_html=True)
+s3.markdown(f"{badge[bool(dh.get('ok'))]} **Dhan company info** (experimental)  \n<small>{dh.get('error') or ('security ID ' + str(dh.get('security_id')))}</small>", unsafe_allow_html=True)
 
 if not finite(vals.get("price")):
     st.error("No price available from any source — check the symbol or enable yfinance / Screener.")
@@ -398,12 +400,22 @@ with tabs[2]:
     path = [float(x) / 100 for x in path_df["Growth %"].fillna(0)]
 
     dcf_rate = rate
-    if not (finite(base_fcf) and base_fcf > 0 and finite(shares)):
+    # WACC → FCFF valued as enterprise, net debt subtracted. Ke → FCFE ≈ FCFF − after-tax interest
+    # (assumes zero net new borrowing), equity valued directly, so net debt is NOT subtracted again.
+    use_fcfe = not disc_basis.startswith("WACC")
+    int_at = F["interest"] * (1 - tax) if finite(F["interest"]) else 0.0
+    cf0 = (base_fcf - int_at) if use_fcfe and finite(base_fcf) else base_fcf
+    nd_used = 0.0 if use_fcfe else net_debt
+    dcf_key = "DCF (FCFE)" if use_fcfe else "DCF (FCFF)"
+    if use_fcfe:
+        st.caption(f"FCFE basis: base FCF {crore(base_fcf)} − after-tax interest {crore(int_at)} = {crore(cf0)}; "
+                   "net debt is not subtracted (equity is valued directly).")
+    if not (finite(cf0) and cf0 > 0 and finite(shares)):
         st.info("Base FCF is missing or ≤ 0 — DCF not applicable. Try the 3-yr average, a custom base, or EPV.")
     elif rate <= g_term:
         st.error("Discount rate must exceed terminal growth.")
     else:
-        res = v.dcf(base_fcf, path, rate, g_term, net_debt, shares, mid_year)
+        res = v.dcf(cf0, path, rate, g_term, nd_used, shares, mid_year)
         ps = res["per_share"]
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Fair value / share", inr(ps), pct(up(ps, price), sign=True))
@@ -414,10 +426,10 @@ with tabs[2]:
             st.warning("More than 75% of value sits in the terminal value — the result is very sensitive to "
                        "terminal growth and discount rate.")
         bridge = pd.DataFrame({
-            "Item": ["PV of explicit FCF", "PV of terminal value", "Enterprise value", "less: net debt", "Equity value",
+            "Item": ["PV of explicit FCF", "PV of terminal value", "Value before debt adj.", "less: net debt", "Equity value",
                      "÷ shares", "Fair value / share"],
             "Value": [crore(res["pv_explicit"]), crore(res["pv_terminal"]), crore(res["enterprise_value"]),
-                      crore(net_debt), crore(res["equity_value"]), f"{shares / 1e7:,.2f} Cr", inr(ps)]})
+                      crore(nd_used), crore(res["equity_value"]), f"{shares / 1e7:,.2f} Cr", inr(ps)]})
         b1, b2 = st.columns([1, 1.4])
         b1.dataframe(bridge, hide_index=True, width="stretch")
         tbl = res["table"].copy()
@@ -429,7 +441,7 @@ with tabs[2]:
 
         rates = [rate + d for d in (-0.02, -0.01, 0, 0.01, 0.02)]
         gts = [g_term + d for d in (-0.01, -0.005, 0, 0.005, 0.01)]
-        sens = v.dcf_sensitivity(base_fcf, g1, years, fade, rates, gts, net_debt, shares, mid_year)
+        sens = v.dcf_sensitivity(cf0, g1, years, fade, rates, gts, nd_used, shares, mid_year)
         fig = go.Figure(go.Heatmap(z=sens.values, x=sens.columns, y=sens.index, colorscale="RdYlGn",
                                    zmid=price, text=[[inr(z, 0) for z in row] for row in sens.values],
                                    texttemplate="%{text}", hovertemplate="r %{y} · g∞ %{x}: %{text}<extra></extra>"))
@@ -439,16 +451,16 @@ with tabs[2]:
         lo_v = sens.iloc[3, 1] if finite(sens.iloc[3, 1]) else ps
         hi_v = sens.iloc[1, 3] if finite(sens.iloc[1, 3]) else ps
         if ps > 0:
-            results["DCF (FCFF)"] = {"base": ps, "low": min(lo_v, hi_v), "high": max(lo_v, hi_v),
+            results[dcf_key] = {"base": ps, "low": min(lo_v, hi_v), "high": max(lo_v, hi_v),
                                      "note": f"r {pct(rate)}, g1 {pct(g1)}, g∞ {pct(g_term)}"}
 
 # ───────────────────────────── Reverse DCF ─────────────────────────────
 with tabs[3]:
     st.subheader("Reverse DCF — what growth is the price assuming?")
-    if not (finite(base_fcf) and base_fcf > 0 and finite(shares)):
+    if not (finite(cf0) and cf0 > 0 and finite(shares)):
         st.info("Needs a positive base FCF (set on the DCF tab).")
     else:
-        g_imp = v.reverse_dcf(price, shares, net_debt, base_fcf, years, dcf_rate, g_term, fade, mid_year)
+        g_imp = v.reverse_dcf(price, shares, nd_used, cf0, years, dcf_rate, g_term, fade, mid_year)
         if g_imp is None:
             st.info("No solution between −50% and +150% stage-1 growth with these inputs.")
         else:
@@ -471,7 +483,7 @@ with tabs[3]:
                                "Expectations look undemanding.")
                 else:
                     st.info(f"Implied growth {pct(g_imp)} is in line with history ({pct(hist_ref)}).")
-            st.caption(f"Uses the DCF tab's base FCF ({crore(base_fcf)}), discount rate {pct(dcf_rate)} and terminal growth {pct(g_term)}.")
+            st.caption(f"Uses the DCF tab's base cash flow ({crore(cf0)}, {dcf_key[5:9]}), discount rate {pct(dcf_rate)} and terminal growth {pct(g_term)}.")
 
 # ───────────────────────────── DDM & RI ─────────────────────────────
 with tabs[4]:
@@ -558,7 +570,7 @@ with tabs[5]:
             st.metric("Fair value at peer median P/E", inr(fv), f"median {peer_pe_med:.1f}x · {pct(up(fv, price), sign=True)}")
             results["Peer P/E (Screener)"] = {"base": fv, "low": fv * 0.85, "high": fv * 1.15, "note": f"median {peer_pe_med:.1f}x"}
     else:
-        st.caption("Screener peer table unavailable.")
+        st.caption(f"Screener peer table unavailable — {scr.get('peers_error') or scr.get('error') or 'unknown reason'}.")
 
     sector_pe = F.get("sector_pe")
     if finite(sector_pe) and sector_pe > 0 and finite(eps) and eps > 0:
@@ -616,8 +628,8 @@ with tabs[6]:
     c2.metric("Earnings Power Value", inr(ep), pct(up(ep, price), sign=True) if ep else None)
     c2.caption("EPV = EBIT·(1−t)/cost of capital − net debt: the business worth with zero growth. "
                "Price − EPV ≈ what the market pays for growth.")
-    if ep and "DCF (FCFF)" in results:
-        c2.metric("Growth premium in DCF over EPV", inr(results["DCF (FCFF)"]["base"] - ep))
+    if ep and dcf_key in results:
+        c2.metric("Growth premium in DCF over EPV", inr(results[dcf_key]["base"] - ep))
     if gn:
         results["Graham Number"] = {"base": gn, "low": gn, "high": gn, "note": "15×P/E · 1.5×P/B"}
     if gg:
@@ -688,7 +700,7 @@ with tabs[0]:
     if not results:
         st.warning("No method produced a value — check the Inputs tab for missing data.")
     else:
-        avoid = {"Analyst target"} | ({"DCF (FCFF)", "EPV", "Custom peers EV/EBITDA", "DDM (2-stage)"} if is_fin else set())
+        avoid = {"Analyst target"} | ({"DCF (FCFF)", "DCF (FCFE)", "EPV", "Custom peers EV/EBITDA", "DDM (2-stage)"} if is_fin else set())
         default_inc = [k for k in results if k not in avoid]
         include = st.multiselect("Methods in the composite (median)", list(results), default=default_inc)
         comp = v.composite(results, include)
