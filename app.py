@@ -192,6 +192,27 @@ def get_dhan(sid: str, token: str, client_id: str) -> dict:
         return e.result  # error shown now, retried on the next run
 
 
+@st.cache_data(ttl=6 * 3600, show_spinner=False)
+def _index_cached():
+    try:
+        import yfinance as yf
+        h = yf.Ticker("^NSEI").history(period="3y", interval="1d")
+    except Exception:
+        raise _NotCached(None)
+    if h is None or h.empty:
+        raise _NotCached(None)
+    c = h["Close"]
+    c.index = pd.to_datetime(c.index).tz_localize(None)
+    return c
+
+
+def get_index_close():
+    try:
+        return _index_cached()
+    except _NotCached:
+        return None
+
+
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_peer_info(sym: str) -> dict:
     try:
@@ -244,14 +265,11 @@ with st.sidebar:
                    "with valid credentials.")
 
     st.subheader("Assumptions")
-    rf = st.number_input("Risk-free rate — 10Y G-Sec %", value=6.50, step=0.05, format="%.2f") / 100
-    erp = st.number_input("Equity risk premium %", value=7.00, step=0.25, format="%.2f") / 100
-    beta_override = st.number_input("Beta override (0 = use data)", value=0.0, step=0.05, format="%.2f")
-    g_term = st.number_input("Terminal growth %", value=5.0, step=0.25, format="%.2f") / 100
-    years = st.slider("Explicit forecast years", 5, 15, 10)
-    fade = st.toggle("Fade growth linearly to terminal", value=True)
-    mid_year = st.toggle("Mid-year discounting", value=False)
-    mos = st.slider("Required margin of safety %", 0, 50, 25) / 100
+    _rf_secret = ds.num(secret("app", "risk_free_rate") or secret("", "RISK_FREE_RATE"))
+    st.session_state.setdefault("rf_pct", float(_rf_secret) if finite(_rf_secret) and 0 < _rf_secret < 20 else 7.45)
+    rf = st.number_input("Risk-free rate — 10Y G-Sec %", key="rf_pct", step=0.05, format="%.2f",
+                         help="Enter today's 10-year G-Sec yield. Set RISK_FREE_RATE in Secrets to change the default.") / 100
+    assump_box = st.container()   # filled with per-stock auto assumptions once the data is in
 
 if st.session_state.get("fv_suggest"):
     q, opts = st.session_state["fv_suggest"]
@@ -426,12 +444,6 @@ if not finite(shares) and finite(F["market_cap"]):
     shares = F["market_cap"] / price
 mcap = price * shares if finite(shares) else F["market_cap"]
 net_debt = F["net_debt"]
-beta = beta_override if beta_override > 0 else (F["beta"] if finite(F["beta"]) and F["beta"] > 0 else 1.0)
-ke = v.capm(rf, beta, erp)
-tax = min(max(F["tax_rate"], 0.0), 0.45) if finite(F["tax_rate"]) else 0.2517
-kd = (min(max(F["interest"] / F["debt"], 0.05), 0.18)
-      if finite(F["interest"]) and finite(F["debt"]) and F["debt"] > 0 and F["interest"] > 0 else rf + 0.02)
-wacc_ = v.wacc(ke, kd, tax, mcap, F["debt"] if finite(F["debt"]) else 0.0)
 sect_txt = f"{ext.get('sector') or ''} {ext.get('industry') or ''} {name}".lower()
 is_fin = any(w in sect_txt for w in ["bank", "financial", "insurance", "nbfc", "finance", "capital markets"])
 
@@ -440,8 +452,68 @@ eps_cagr, eps_n = v.series_cagr(list(eps_annual.values) if eps_annual is not Non
 sales_cagr, sales_n = v.series_cagr(list(sales_annual.values) if sales_annual is not None else [], 5)
 fcf_hist = ext.get("fcf_annual")
 fwd_growth = (F["forward_eps"] / F["eps_ttm"] - 1) if finite(F["forward_eps"]) and finite(F["eps_ttm"]) and F["eps_ttm"] > 0 else None
-default_g1 = next((g for g in [eps_cagr, sales_cagr, fwd_growth] if g is not None and finite(g)), 0.10)
-default_g1 = float(min(max(default_g1, 0.0), 0.25))
+hist_growth = next((g for g in [eps_cagr, sales_cagr, fwd_growth] if g is not None and finite(g)), None)
+default_g1 = float(min(max(hist_growth if hist_growth is not None else 0.10, 0.0), 0.25))
+
+# ── per-stock auto assumptions (editable; edits are remembered per stock for this session) ──
+_hist = yfd.get("history")
+_idx = get_index_close()
+beta_reg, beta_obs = (v.regression_beta(_hist["Close"], _idx) if _hist is not None and _idx is not None else (None, 0))
+AUTO = v.auto_assumptions(rf, mcap, hist_growth, beta_reg, F["roe"] if finite(F["roe"]) else None)
+AN = AUTO["notes"]
+
+
+# Overrides live in a plain dict: Streamlit deletes a widget's own state when it is not drawn (e.g. while you
+# look at another stock), so widget keys alone would forget your edits.
+OVR = st.session_state.setdefault("fv_overrides", {})
+
+
+def _store(name: str, key: str, sym: str = symbol):
+    OVR.setdefault(sym, {})[name] = st.session_state[key]
+
+
+def aval(name: str, auto):
+    return OVR.get(symbol, {}).get(name, auto)
+
+
+def _reset_auto(sym=symbol):
+    OVR.pop(sym, None)
+    for k in [k for k in st.session_state.keys() if str(k).endswith(f"__{sym}")]:
+        del st.session_state[k]
+
+
+def kw(name: str) -> dict:
+    """Common widget kwargs: per-stock key + store edits as overrides."""
+    k = f"{name}__{symbol}"
+    return {"key": k, "on_change": _store, "args": (name, k)}
+
+
+with assump_box:
+    st.caption(f"Auto-set for **{symbol}** · {AUTO['size']} · edit any value to override")
+    erp = st.number_input("Equity risk premium %", value=float(aval("erp", AUTO["erp"] * 100)), step=0.25, format="%.2f",
+                          help=AN["erp"], **kw("erp")) / 100
+    beta = st.number_input("Beta", value=float(aval("beta", AUTO["beta"])), step=0.05, format="%.2f", min_value=0.1,
+                           help=AN["beta"], **kw("beta"))
+    g_term = st.number_input("Terminal growth %", value=float(aval("gterm", AUTO["g_term"] * 100)), step=0.25, format="%.2f",
+                             help=AN["g_term"], **kw("gterm")) / 100
+    years = st.slider("Explicit forecast years", 5, 15, int(aval("years", AUTO["years"])), help=AN["years"], **kw("years"))
+    fade = st.toggle("Fade growth linearly to terminal", value=bool(aval("fade", AUTO["fade"])), **kw("fade"))
+    mid_year = st.toggle("Mid-year discounting", value=bool(aval("mid", AUTO["mid_year"])), **kw("mid"))
+    mos = st.slider("Required margin of safety %", 0, 50, int(aval("mos", AUTO["mos"] * 100)), help=AN["mos"], **kw("mos")) / 100
+    if OVR.get(symbol):
+        st.caption("✏️ Overridden here: " + ", ".join(OVR[symbol]))
+    with st.expander("Why these values?"):
+        for lab, k in [("ERP", "erp"), ("Beta", "beta"), ("Terminal growth", "g_term"), ("Forecast years", "years"),
+                       ("Margin of safety", "mos"), ("RI terminal spread", "ri_spread")]:
+            st.caption(f"**{lab}:** {AN[k]}")
+        st.caption("Rules of thumb, not market-derived optimum values — see the README.")
+    st.button("↺ Reset to auto values", on_click=_reset_auto, width="stretch")
+
+ke = v.capm(rf, beta, erp)
+tax = min(max(F["tax_rate"], 0.0), 0.45) if finite(F["tax_rate"]) else 0.2517
+kd = (min(max(F["interest"] / F["debt"], 0.05), 0.18)
+      if finite(F["interest"]) and finite(F["debt"]) and F["debt"] > 0 and F["interest"] > 0 else rf + 0.02)
+wacc_ = v.wacc(ke, kd, tax, mcap, F["debt"] if finite(F["debt"]) else 0.0)
 
 # ───────────────────────────── DCF ─────────────────────────────
 with tabs[2]:
@@ -464,8 +536,8 @@ with tabs[2]:
                f"Fwd EPS growth {pct(fwd_growth)}")
     disc_basis = c3.radio("Discount at", ["WACC (FCFF)", "Cost of equity"], index=0)
     rate = c3.number_input("Discount rate %", value=round((wacc_ if disc_basis.startswith("WACC") else ke) * 100, 2),
-                           step=0.25, format="%.2f", key=f"rate_{disc_basis}") / 100
-    c3.caption(f"Ke {pct(ke)} (β {beta:.2f}) · Kd {pct(kd)} · WACC {pct(wacc_)}")
+                           step=0.25, format="%.2f", key=f"rate_{disc_basis}_{symbol}_{round(wacc_ if disc_basis.startswith('WACC') else ke, 4)}") / 100
+    c3.caption(f"Ke {pct(ke)} = {pct(rf)} + β {beta:.2f} × {pct(erp)} · Kd {pct(kd)} · WACC {pct(wacc_)}")
 
     path_df = pd.DataFrame({"Year": range(1, years + 1), "Growth %": [x * 100 for x in v.growth_path(g1, g_term, years, fade)]})
     with st.expander("Edit year-by-year growth path"):
@@ -580,8 +652,9 @@ with tabs[4]:
         st.markdown("**Residual income (Edwards-Bell-Ohlson)**")
         roe_in = c2.number_input("Current ROE %", value=round(F["roe"] * 100, 2) if finite(F["roe"]) else 15.0, step=0.5) / 100
         payout_in = c2.number_input("Payout ratio %", value=round(F["payout"] * 100, 1) if finite(F["payout"]) else 30.0, step=5.0) / 100
-        spread = c2.slider("Terminal ROE spread over Ke %", 0.0, 10.0, 2.0, 0.5,
-                           help="0 = competitive advantage fully fades. >0 = a durable moat earning this spread forever.") / 100
+        spread = c2.slider("Terminal ROE spread over Ke %", 0.0, 10.0, float(aval("spread", AUTO["ri_spread"] * 100)), 0.5, **kw("spread"),
+                           help="0 = competitive advantage fully fades. >0 = a durable moat earning this spread forever. "
+                                f"Auto: {AN['ri_spread']}") / 100
         bvps = F["bvps"]
         ri = v.residual_income(bvps, roe_in, ke, payout_in, years, fade, spread, g_term) if finite(bvps) else None
         jpb = v.justified_pb(roe_in, ke, g_term)
