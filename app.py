@@ -143,14 +143,41 @@ def get_screener(sym: str, consolidated: bool) -> dict:
     return ds.fetch_screener(sym, consolidated)
 
 
+class _NotCached(Exception):
+    """Raised inside a cached function so Streamlit does NOT cache a failed fetch (exceptions are never cached)."""
+    def __init__(self, result):
+        super().__init__("fetch failed")
+        self.result = result
+
+
 @st.cache_data(ttl=86400, show_spinner=False)
+def _master_cached():
+    m = ds.load_dhan_scrip_master()
+    if m is None or m.empty:
+        raise _NotCached(None)
+    return m
+
+
 def get_master():
-    return ds.load_dhan_scrip_master()
+    try:
+        return _master_cached()
+    except _NotCached:
+        return None  # retried on the next run instead of being stuck for 24 h
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
+def _dhan_cached(sid: str, token: str, client_id: str) -> dict:
+    r = ds.fetch_dhan_company_info(sid, token, client_id)
+    if not r.get("ok"):
+        raise _NotCached(r)
+    return r
+
+
 def get_dhan(sid: str, token: str, client_id: str) -> dict:
-    return ds.fetch_dhan_company_info(sid, token, client_id)
+    try:
+        return _dhan_cached(sid, token, client_id)
+    except _NotCached as e:
+        return e.result  # error shown now, retried on the next run
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
