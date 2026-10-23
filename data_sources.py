@@ -241,6 +241,50 @@ def load_dhan_scrip_master(url: str = DHAN_SCRIP_MASTER, timeout: int = 60) -> p
     return df[mask].reset_index(drop=True)
 
 
+EQ_SERIES = ["EQ", "BE", "BZ", "SM", "ST", "SZ"]   # equity series (main board, trade-for-trade, SME)
+
+
+def load_nse_equities() -> pd.DataFrame:
+    """All NSE cash-market equities: SYMBOL, SID (Dhan securityId), NAME. One row per symbol, EQ series preferred.
+    Same logic as the Forward Matrix Scanner's dhan.load_nse_equities()."""
+    r = requests.get(DHAN_SCRIP_MASTER, headers=UA, timeout=60)
+    r.raise_for_status()
+    cols = ["SEM_EXM_EXCH_ID", "SEM_SEGMENT", "SEM_SMST_SECURITY_ID", "SEM_TRADING_SYMBOL", "SEM_SERIES", "SM_SYMBOL_NAME"]
+    d = pd.read_csv(io.BytesIO(r.content), usecols=cols, low_memory=False)
+    e = d[(d["SEM_EXM_EXCH_ID"] == "NSE") & (d["SEM_SEGMENT"] == "E") & (d["SEM_SERIES"].isin(EQ_SERIES))].copy()
+    e["rank"] = e["SEM_SERIES"].map({k: i for i, k in enumerate(EQ_SERIES)})
+    e = e.sort_values("rank").drop_duplicates("SEM_TRADING_SYMBOL")
+    return pd.DataFrame({"SYMBOL": e["SEM_TRADING_SYMBOL"].astype(str).str.upper().str.strip(),
+                         "SID": e["SEM_SMST_SECURITY_ID"].astype(str),
+                         "NAME": e["SM_SYMBOL_NAME"].fillna("").astype(str).str.strip()}).reset_index(drop=True)
+
+
+def suggest_symbols(q: str, df: pd.DataFrame, n: int = 8) -> list:
+    """Closest NSE symbols for a mistyped symbol or a company name, best first (identical to the Forward Matrix).
+    Scores: symbol starts with text 100 · name starts with text 95 · every word in name 85 · symbol contains text 70 ·
+    fuzzy symbol / name similarity up to 60. ETFs and fund units (names with 'AMC') are pushed down."""
+    import difflib
+    q = q.upper().strip()
+    qs = q.replace(" ", "")
+    words = [w for w in re.split(r"[^A-Z0-9&]+", q) if w]
+    best = {}
+    for sym, nm in zip(df["SYMBOL"], df["NAME"].str.upper()):
+        sc = 0.0
+        if sym.startswith(qs): sc = 100
+        elif nm.startswith(q): sc = 95
+        elif words and all(w in nm or w in sym for w in words): sc = 85
+        elif qs in sym: sc = 70
+        else:
+            r = max(difflib.SequenceMatcher(None, qs, sym).ratio(), difflib.SequenceMatcher(None, q, nm[:len(q) + 6]).ratio())
+            if r >= 0.6: sc = r * 60
+        if sc:
+            if "AMC" in nm or "ETF" in nm: sc -= 40
+            best[sym] = sc - len(sym) * 0.01          # shorter symbol wins ties
+    names = dict(zip(df["SYMBOL"], df["NAME"]))
+    top = sorted(best, key=best.get, reverse=True)[:n]
+    return [(x, names.get(x, "")) for x in top]
+
+
 def dhan_security_id(master: pd.DataFrame | None, symbol: str) -> tuple[str | None, str | None]:
     if master is None or master.empty:
         return None, None
