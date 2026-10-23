@@ -241,6 +241,76 @@ def sotp(segments: pd.DataFrame, holdings: pd.DataFrame, holding_discount: float
     return {"segments": seg_val, "holdings": hold_val, "equity": equity, "per_share": equity / shares}
 
 
+# ───────────────────────────── Auto assumptions ─────────────────────────────
+def regression_beta(stock_close: pd.Series, index_close: pd.Series, years: float = 2.0,
+                    blume: bool = True) -> tuple[float | None, int]:
+    """Beta of weekly returns vs an index over the last `years`. Blume-adjusted (0.67·β + 0.33) by default.
+    Returns (beta, number of weekly observations)."""
+    try:
+        s = stock_close.dropna().copy(); i = index_close.dropna().copy()
+        for x in (s, i):
+            x.index = pd.to_datetime(x.index)
+            if getattr(x.index, "tz", None) is not None:
+                x.index = x.index.tz_localize(None)
+        df = pd.concat([s.resample("W-FRI").last().pct_change(), i.resample("W-FRI").last().pct_change()], axis=1).dropna()
+        df = df[df.index >= df.index.max() - pd.Timedelta(days=int(365.25 * years))]
+        if len(df) < 40:
+            return None, len(df)
+        c = np.cov(df.iloc[:, 0], df.iloc[:, 1])
+        b = c[0, 1] / c[1, 1]
+        return float(0.67 * b + 0.33 if blume else b), len(df)
+    except Exception:
+        return None, 0
+
+
+SIZE_RULES = {  # approximate SEBI/AMFI cut-offs by market cap (₹ crore); rule-of-thumb premia
+    "Large cap": {"min_cr": 100_000, "erp": 5.75, "mos": 25},
+    "Mid cap":   {"min_cr": 30_000,  "erp": 6.25, "mos": 30},
+    "Small cap": {"min_cr": 0,       "erp": 6.75, "mos": 35},
+}
+
+
+def auto_assumptions(rf: float, mcap: float | None, growth: float | None, beta_reg: float | None,
+                     roe: float | None) -> dict:
+    """Per-stock starting assumptions. rf and growth/roe are decimals; mcap in ₹. Returns values + reasons.
+
+    These are documented rules of thumb, not market-derived 'optimal' values.
+    """
+    cr = mcap / 1e7 if _ok(mcap) else None
+    size = next((k for k, r in SIZE_RULES.items() if cr is not None and cr >= r["min_cr"]), "Small cap" if cr is not None else "Mid cap")
+    rule = SIZE_RULES[size]
+    size_note = f"{size} (₹{cr:,.0f} Cr)" if cr is not None else "market cap unknown → treated as mid cap"
+
+    if beta_reg is not None and _ok(beta_reg):
+        beta, beta_note = float(min(max(beta_reg, 0.6), 1.8)), f"2-yr weekly vs NIFTY 50, Blume-adjusted ({beta_reg:.2f}"
+        beta_note += ", clipped)" if beta != beta_reg else ")"
+    else:
+        beta, beta_note = 1.0, "regression unavailable → market beta 1.0"
+
+    g_term = max(3.0, min(5.0, rf * 100 - 2.0)) / 100
+    g = growth if _ok(growth) else None
+    years = 10 if g is not None and g >= 0.15 else 7 if g is not None and g >= 0.08 else 5
+    g_note = f"historical growth {g * 100:.1f}%" if g is not None else "growth unknown"
+
+    ke = rf + beta * rule["erp"] / 100
+    spread = 0.0
+    if _ok(roe) and roe > ke:
+        spread = min(round((roe - ke) / 2 * 200) / 200, 0.05)   # half today's excess return, to nearest 0.5 pp, max 5 pp
+    return {
+        "erp": rule["erp"] / 100, "beta": round(beta, 2), "g_term": g_term, "years": years,
+        "fade": True, "mid_year": True, "mos": rule["mos"] / 100, "ri_spread": spread, "size": size,
+        "notes": {
+            "erp": f"{size_note} → ERP {rule['erp']:.2f}%",
+            "beta": beta_note,
+            "g_term": f"min(5%, G-Sec − 2 pp), floor 3% → {g_term * 100:.2f}%",
+            "years": f"{g_note} → {years} yrs (≥15%: 10 · ≥8%: 7 · else 5)",
+            "mos": f"{size} → {rule['mos']}%",
+            "ri_spread": (f"half of ROE {roe * 100:.1f}% − Ke {ke * 100:.1f}% → {spread * 100:.1f} pp (max 5)"
+                          if _ok(roe) else "ROE unknown → 0"),
+        },
+    }
+
+
 # ───────────────────────────── Composite & verdict ─────────────────────────────
 def composite(results: dict[str, dict], include: Iterable[str]) -> dict | None:
     """results: name → {"base": float, "low": float, "high": float}. Median of included bases."""
