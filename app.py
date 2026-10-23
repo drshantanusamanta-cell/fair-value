@@ -9,6 +9,8 @@ from __future__ import annotations
 import base64
 import json
 import math
+import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -47,15 +49,56 @@ def up(fv, price):
 SECRETS_FILE = Path(__file__).parent / ".streamlit" / "secrets.toml"
 
 
+SECRET_ALIASES = {
+    "client_id": ["client_id", "clientid", "dhan_client_id", "dhanclientid"],
+    "access_token": ["access_token", "accesstoken", "token", "api_token", "dhan_access_token", "dhan_token", "jwt"],
+}
+
+
+def _nk(k) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(k).lower())
+
+
 def secret(section: str, key: str) -> str:
-    """Session override (set from the 🔐 Secrets tab) → st.secrets (secrets.toml / Streamlit Cloud)."""
+    """Session override → st.secrets → environment variable.
+
+    Tolerant of layout: [dhan] / [Dhan] / [DHAN] sections, key aliases (token, accessToken, …) and
+    flat top-level keys such as DHAN_ACCESS_TOKEN or access_token.
+    """
     override = st.session_state.get(f"_secret_{section}_{key}")
     if override:
         return str(override)
+    names = SECRET_ALIASES.get(key, [key])
+    want = {_nk(n) for n in names} | {_nk(f"{section}_{n}") for n in names}
     try:
-        return str(st.secrets[section][key])
-    except Exception:
-        return ""
+        top = {k: st.secrets[k] for k in st.secrets.keys()}
+        for k, val in top.items():  # [dhan] section, any case
+            if hasattr(val, "keys") and _nk(k) == _nk(section):
+                for kk in val.keys():
+                    if _nk(kk) in want and str(val[kk]).strip():
+                        return str(val[kk]).strip()
+        for k, val in top.items():  # flat top-level keys
+            if not hasattr(val, "keys") and _nk(k) in want and str(val).strip():
+                return str(val).strip()
+    except Exception as e:
+        st.session_state["_secrets_error"] = f"{type(e).__name__}: {e}"
+    for n in names:
+        env = os.environ.get(f"{section}_{n}".upper()) or os.environ.get(n.upper())
+        if env:
+            return env.strip()
+    return ""
+
+
+def visible_secret_names() -> list[str]:
+    """Secret key names only (never values), for diagnosing layout problems."""
+    out = []
+    try:
+        for k in st.secrets.keys():
+            val = st.secrets[k]
+            out += [f"[{k}] {kk}" for kk in val.keys()] if hasattr(val, "keys") else [k]
+    except Exception as e:
+        out.append(f"⚠️ could not read secrets — {type(e).__name__}: {e}")
+    return out
 
 
 def save_secrets_section(section: str, values: dict, path: Path = SECRETS_FILE) -> None:
@@ -211,6 +254,13 @@ with tabs[9]:
                  delta_color="inverse" if left.total_seconds() <= 0 else "off")
     else:
         c.metric("Token expires", "—")
+    if not dhan_tok:
+        seen = visible_secret_names()
+        st.error("No Dhan access token found. Secret names this app can see: "
+                 + (", ".join(f"`{s}`" for s in seen) if seen else "**none** — the Secrets box is empty or hasn't "
+                    "reached the app yet (save it, wait ~1 min or Reboot app)."))
+        st.caption("Expected layout — a `[dhan]` section with `client_id` and `access_token` (flat keys like "
+                   "`DHAN_ACCESS_TOKEN` also work). Use straight quotes `\"…\"`, not curly “…”.")
 
     with st.form("dhan_secrets_form"):
         new_cid = st.text_input("Client ID", value=dhan_cid)
