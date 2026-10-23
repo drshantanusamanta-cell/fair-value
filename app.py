@@ -151,18 +151,30 @@ class _NotCached(Exception):
 
 
 @st.cache_data(ttl=86400, show_spinner=False)
-def _master_cached():
-    m = ds.load_dhan_scrip_master()
-    if m is None or m.empty:
+def _nse_list_cached():
+    """NSE equity symbols + names + Dhan security IDs from Dhan's public scrip master (no token needed)."""
+    try:
+        df = ds.load_nse_equities()
+    except Exception:
         raise _NotCached(None)
-    return m
+    if df is None or df.empty:
+        raise _NotCached(None)
+    return df
+
+
+def get_nse_list():
+    try:
+        return _nse_list_cached()
+    except _NotCached:
+        return None  # retried on the next run instead of being stuck for 24 h
 
 
 def get_master():
-    try:
-        return _master_cached()
-    except _NotCached:
-        return None  # retried on the next run instead of being stuck for 24 h
+    """Same list, in the column layout ds.dhan_security_id() expects (one download serves both uses)."""
+    df = get_nse_list()
+    if df is None:
+        return None
+    return pd.DataFrame({"symbol": df["SYMBOL"], "security_id": df["SID"], "name": df["NAME"], "series": "EQ"})
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
@@ -192,8 +204,29 @@ def get_peer_info(sym: str) -> dict:
 # ───────────────────────────── sidebar ─────────────────────────────
 with st.sidebar:
     st.header("⚖️ Fair Value Workbench")
-    symbol = st.text_input("NSE symbol", value=st.query_params.get("s", "ITC")).strip().upper()
-    st.caption("Plain NSE symbol — e.g. ITC, INFY, TATAMOTORS")
+    if "fv_symbol" not in st.session_state:
+        st.session_state["fv_symbol"] = str(st.query_params.get("s", "ITC")).strip().upper()
+    # Fixed widget key: passing value= would give the box a new identity whenever the symbol changes, and Streamlit
+    # would then discard the next thing typed. A suggestion click sets _fv_input_pending, applied here before the
+    # widget exists (a widget's state can't be changed after it is drawn in the same run).
+    if "_fv_input_pending" in st.session_state:
+        st.session_state["fv_input"] = st.session_state.pop("_fv_input_pending")
+    st.session_state.setdefault("fv_input", st.session_state["fv_symbol"])
+    with st.form("sym_form", border=False):
+        typed = st.text_input("NSE symbol", key="fv_input",
+                              placeholder="e.g. ITC, HDFCBANK, or a company name",
+                              help="If the text is not an NSE symbol, similar symbols are suggested.")
+        go_btn = st.form_submit_button("🔍 Go", type="primary", width="stretch")
+    if go_btn and typed.strip():
+        q = typed.strip().upper()
+        q = q[:-3] if q.endswith(".NS") else q
+        st.session_state.pop("fv_suggest", None)
+        nse = get_nse_list() if ("." not in q and not q.startswith("^")) else None  # list unavailable → use as typed
+        if nse is not None and q not in set(nse["SYMBOL"]):
+            st.session_state["fv_suggest"] = (q, ds.suggest_symbols(q, nse))
+        else:
+            st.session_state["fv_symbol"] = q
+    symbol = st.session_state["fv_symbol"]
 
     with st.expander("Data sources"):
         use_scr = st.toggle("Screener.in", value=True)
@@ -220,6 +253,20 @@ with st.sidebar:
     mid_year = st.toggle("Mid-year discounting", value=False)
     mos = st.slider("Required margin of safety %", 0, 50, 25) / 100
 
+if st.session_state.get("fv_suggest"):
+    q, opts = st.session_state["fv_suggest"]
+    if opts:
+        st.warning(f"**“{q}”** is not an NSE symbol. Did you mean one of these?")
+        cols = st.columns(2)
+        for i, (sym_, nm_) in enumerate(opts):
+            if cols[i % 2].button(f"{sym_} · {nm_.title()}" if nm_ else sym_, key=f"sugg_{sym_}", width="stretch"):
+                st.session_state.pop("fv_suggest", None)
+                st.session_state["fv_symbol"] = sym_
+                st.session_state["_fv_input_pending"] = sym_   # show the chosen symbol in the box
+                st.rerun()
+    else:
+        st.warning(f"**“{q}”** is not an NSE symbol and nothing similar was found. Try the company name, e.g. *tata motors*.")
+    st.stop()
 if not symbol:
     st.info("Enter an NSE symbol in the sidebar.")
     st.stop()
