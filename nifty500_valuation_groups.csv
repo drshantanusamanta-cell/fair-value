@@ -1,0 +1,501 @@
+NSE symbol,TradingView symbol,Company,NSE industry,Valuation group,Reason,Basis
+IRB,IRB,IRB Infrastructure Developers Ltd.,Construction,Capital-heavy,toll-road owner (BOT/InvIT-like),per-stock
+ACC,ACC,ACC Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+AMBUJACEM,AMBUJACEM,Ambuja Cements Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+DALBHARAT,DALBHARAT,Dalmia Bharat Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+INDIACEM,INDIACEM,India Cements Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+JKCEMENT,JKCEMENT,J.K. Cement Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+JSWCEMENT,JSWCEMENT,JSW Cement Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+NUVOCO,NUVOCO,Nuvoco Vistas Corporation Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+RAMCOCEM,RAMCOCEM,The Ramco Cements Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+SHREECEM,SHREECEM,Shree Cement Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+ULTRACEMCO,ULTRACEMCO,UltraTech Cement Ltd.,Construction Materials,Capital-heavy,"cement: EV/EBITDA, EV/tonne",NSE industry default
+DEVYANI,DEVYANI,Devyani International Ltd.,Consumer Services,Capital-heavy,QSR chain: EV/EBITDA (lease-heavy),per-stock
+EIHOTEL,EIHOTEL,EIH Ltd.,Consumer Services,Capital-heavy,"hotel owner: EV/EBITDA, EV/room",per-stock
+INDHOTEL,INDHOTEL,Indian Hotels Co. Ltd.,Consumer Services,Capital-heavy,"hotel owner: EV/EBITDA, EV/room",per-stock
+ITCHOTELS,ITCHOTELS,ITC Hotels Ltd.,Consumer Services,Capital-heavy,"hotel owner: EV/EBITDA, EV/room",per-stock
+JUBLFOOD,JUBLFOOD,Jubilant Foodworks Ltd.,Consumer Services,Capital-heavy,QSR chain: EV/EBITDA (lease-heavy),per-stock
+LEMONTREE,LEMONTREE,Lemon Tree Hotels Ltd.,Consumer Services,Capital-heavy,"hotel owner: EV/EBITDA, EV/room",per-stock
+APOLLOHOSP,APOLLOHOSP,Apollo Hospitals Enterprise Ltd.,Healthcare,Capital-heavy,"hospital chain: EV/EBITDA, EV/bed",per-stock
+ASTERDM,ASTERDM,Aster DM Quality Care Ltd.,Healthcare,Capital-heavy,"hospital chain: EV/EBITDA, EV/bed",per-stock
+FORTIS,FORTIS,Fortis Healthcare Ltd.,Healthcare,Capital-heavy,"hospital chain: EV/EBITDA, EV/bed",per-stock
+KIMS,KIMS,Krishna Institute of Medical Sciences Ltd.,Healthcare,Capital-heavy,"hospital chain: EV/EBITDA, EV/bed",per-stock
+MAXHEALTH,MAXHEALTH,Max Healthcare Institute Ltd.,Healthcare,Capital-heavy,"hospital chain: EV/EBITDA, EV/bed",per-stock
+MEDANTA,MEDANTA,Global Health Ltd.,Healthcare,Capital-heavy,"hospital chain: EV/EBITDA, EV/bed",per-stock
+NH,NH,Narayana Hrudayalaya Ltd.,Healthcare,Capital-heavy,"hospital chain: EV/EBITDA, EV/bed",per-stock
+RAINBOW,RAINBOW,Rainbow Childrens Medicare Ltd.,Healthcare,Capital-heavy,"hospital chain: EV/EBITDA, EV/bed",per-stock
+PVRINOX,PVRINOX,PVR INOX Ltd.,Media Entertainment & Publication,Capital-heavy,multiplex owner: EV/EBITDA,per-stock
+AEGISLOG,AEGISLOG,Aegis Logistics Ltd.,Oil Gas & Consumable Fuels,Capital-heavy,gas transmission / LNG / terminals,per-stock
+AEGISVOPAK,AEGISVOPAK,Aegis Vopak Terminals Ltd.,Oil Gas & Consumable Fuels,Capital-heavy,gas transmission / LNG / terminals,per-stock
+GAIL,GAIL,GAIL (India) Ltd.,Oil Gas & Consumable Fuels,Capital-heavy,gas transmission / LNG / terminals,per-stock
+PETRONET,PETRONET,Petronet LNG Ltd.,Oil Gas & Consumable Fuels,Capital-heavy,gas transmission / LNG / terminals,per-stock
+RELIANCE,RELIANCE,Reliance Industries Ltd.,Oil Gas & Consumable Fuels,Capital-heavy,"conglomerate valued on EV/EBITDA (O2C, Jio, Retail)",per-stock
+ACMESOLAR,ACMESOLAR,ACME Solar Holdings Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+ADANIENSOL,ADANIENSOL,Adani Energy Solutions Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+ADANIGREEN,ADANIGREEN,Adani Green Energy Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+ADANIPOWER,ADANIPOWER,Adani Power Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+CLEANMAX,CLEANMAX,Clean Max Enviro Energy Solutions Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+JPPOWER,JPPOWER,Jaiprakash Power Ventures Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+JSWENERGY,JSWENERGY,JSW Energy Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+NAVA,NAVA,Nava Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+NTPCGREEN,NTPCGREEN,NTPC Green Energy Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+RPOWER,RPOWER,Reliance Power Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+TATAPOWER,TATAPOWER,Tata Power Co. Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+VEDPOWER,VEDPOWER,Vedanta Power Ltd.,Power,Capital-heavy,power: capital-heavy,NSE industry default
+PHOENIXLTD,PHOENIXLTD,Phoenix Mills Ltd.,Realty,Capital-heavy,rental mall owner: EV/EBITDA,per-stock
+ADANIPORTS,ADANIPORTS,Adani Ports and Special Economic Zone Ltd.,Services,Capital-heavy,ports / airports / logistics assets,per-stock
+CONCOR,CONCOR,Container Corporation of India Ltd.,Services,Capital-heavy,ports / airports / logistics assets,per-stock
+GMRAIRPORT,GMRAIRPORT,GMR Airports Ltd.,Services,Capital-heavy,ports / airports / logistics assets,per-stock
+INDIGO,INDIGO,InterGlobe Aviation Ltd.,Services,Capital-heavy,airline: compare on EV/EBITDAR (lease-heavy),per-stock
+JSWINFRA,JSWINFRA,JSW Infrastructure Ltd.,Services,Capital-heavy,ports / airports / logistics assets,per-stock
+BHARTIARTL,BHARTIARTL,Bharti Airtel Ltd.,Telecommunication,Capital-heavy,telecom operator / towers: EV/EBITDA,per-stock
+BHARTIHEXA,BHARTIHEXA,Bharti Hexacom Ltd.,Telecommunication,Capital-heavy,telecom operator / towers: EV/EBITDA,per-stock
+IDEA,IDEA,Vodafone Idea Ltd.,Telecommunication,Capital-heavy,telecom operator / towers: EV/EBITDA,per-stock
+INDUSTOWER,INDUSTOWER,Indus Towers Ltd.,Telecommunication,Capital-heavy,telecom operator / towers: EV/EBITDA,per-stock
+TATACOMM,TATACOMM,Tata Communications Ltd.,Telecommunication,Capital-heavy,telecom operator / towers: EV/EBITDA,per-stock
+TTML,TTML,Tata Teleservices (Maharashtra) Ltd.,Telecommunication,Capital-heavy,telecom operator / towers: EV/EBITDA,per-stock
+ASHOKLEY,ASHOKLEY,Ashok Leyland Ltd.,Capital Goods,Cyclical (mid-cycle),commercial vehicles: cyclical,per-stock
+GALLANTT,GALLANTT,Gallantt Ispat Ltd.,Capital Goods,Cyclical (mid-cycle),steel / graphite / pipes: commodity-linked,per-stock
+GPIL,GPIL,Godawari Power & Ispat Ltd.,Capital Goods,Cyclical (mid-cycle),steel / graphite / pipes: commodity-linked,per-stock
+GRAPHITE,GRAPHITE,Graphite India Ltd.,Capital Goods,Cyclical (mid-cycle),steel / graphite / pipes: commodity-linked,per-stock
+HEGAM,HEGAM,HEG Advanced Materials Ltd.,Capital Goods,Cyclical (mid-cycle),steel / graphite / pipes: commodity-linked,per-stock
+JINDALSAW,JINDALSAW,Jindal Saw Ltd.,Capital Goods,Cyclical (mid-cycle),steel / graphite / pipes: commodity-linked,per-stock
+SHYAMMETL,SHYAMMETL,Shyam Metalics and Energy Ltd.,Capital Goods,Cyclical (mid-cycle),steel / graphite / pipes: commodity-linked,per-stock
+TMCV,TMCV,Tata Motors Ltd.,Capital Goods,Cyclical (mid-cycle),commercial vehicles: cyclical,per-stock
+WELCORP,WELCORP,Welspun Corp Ltd.,Capital Goods,Cyclical (mid-cycle),steel / graphite / pipes: commodity-linked,per-stock
+CHAMBLFERT,CHAMBLFERT,Chambal Fertilizers & Chemicals Ltd.,Chemicals,Cyclical (mid-cycle),fertiliser / commodity chemical,per-stock
+DEEPAKFERT,DEEPAKFERT,Deepak Fertilisers & Petrochemicals Corp. Ltd.,Chemicals,Cyclical (mid-cycle),fertiliser / commodity chemical,per-stock
+FACT,FACT,Fertilisers and Chemicals Travancore Ltd.,Chemicals,Cyclical (mid-cycle),fertiliser / commodity chemical,per-stock
+PARADEEP,PARADEEP,Paradeep Phosphates Ltd.,Chemicals,Cyclical (mid-cycle),fertiliser / commodity chemical,per-stock
+PCBL,PCBL,PCBL Chemical Ltd.,Chemicals,Cyclical (mid-cycle),fertiliser / commodity chemical,per-stock
+TATACHEM,TATACHEM,Tata Chemicals Ltd.,Chemicals,Cyclical (mid-cycle),fertiliser / commodity chemical,per-stock
+AWL,AWL,AWL Agri Business Ltd.,Fast Moving Consumer Goods,Cyclical (mid-cycle),sugar / edible oil: commodity-linked,per-stock
+BALRAMCHIN,BALRAMCHIN,Balrampur Chini Mills Ltd.,Fast Moving Consumer Goods,Cyclical (mid-cycle),sugar / edible oil: commodity-linked,per-stock
+GMDCLTD,GMDCLTD,Gujarat Mineral Development Corporation Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+GRAVITA,GRAVITA,Gravita India Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+HINDALCO,HINDALCO,Hindalco Industries Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+HINDCOPPER,HINDCOPPER,Hindustan Copper Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+HINDZINC,HINDZINC,Hindustan Zinc Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+JAINREC,JAINREC,Jain Resource Recycling Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+JINDALSTEL,JINDALSTEL,Jindal Steel Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+JSL,JSL,Jindal Stainless Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+JSWSTEEL,JSWSTEEL,JSW Steel Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+LLOYDSME,LLOYDSME,Lloyds Metals And Energy Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+NATIONALUM,NATIONALUM,National Aluminium Co. Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+NMDC,NMDC,NMDC Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+NSLNISP,NSLNISP,NMDC Steel Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+SAIL,SAIL,Steel Authority of India Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+SARDAEN,SARDAEN,Sarda Energy and Minerals Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+TATASTEEL,TATASTEEL,Tata Steel Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+VAML,VAML,Vedanta Aluminium Metal Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+VEDL,VEDL,Vedanta Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+VISL,VISL,Vedanta Iron and Steel Ltd.,Metals & Mining,Cyclical (mid-cycle),metals & mining: mid-cycle EV/EBITDA,NSE industry default
+BHARATCOAL,BHARATCOAL,Bharat Coking Coal Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+BPCL,BPCL,Bharat Petroleum Corporation Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+CHENNPETRO,CHENNPETRO,Chennai Petroleum Corporation Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+COALINDIA,COALINDIA,Coal India Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+HINDPETRO,HINDPETRO,Hindustan Petroleum Corporation Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+IOC,IOC,Indian Oil Corporation Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+MRPL,MRPL,Mangalore Refinery & Petrochemicals Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+OIL,OIL,Oil India Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+ONGC,ONGC,Oil & Natural Gas Corporation Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+VOGL,VOGL,Vedanta Oil and Gas Ltd.,Oil Gas & Consumable Fuels,Cyclical (mid-cycle),"oil, gas & coal: commodity-linked",NSE industry default
+ABREL,ABREL,Aditya Birla Real Estate Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+ANANTRAJ,ANANTRAJ,Anant Raj Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+BRIGADE,BRIGADE,Brigade Enterprises Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+DLF,DLF,DLF Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+GODREJPROP,GODREJPROP,Godrej Properties Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+LODHA,LODHA,Lodha Developers Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+OBEROIRLTY,OBEROIRLTY,Oberoi Realty Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+PRESTIGE,PRESTIGE,Prestige Estates Projects Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+SIGNATURE,SIGNATURE,Signatureglobal (India) Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+SOBHA,SOBHA,Sobha Ltd.,Realty,Cyclical (mid-cycle),"real-estate developer: cyclical, NAV not in Pine",NSE industry default
+GESHIP,GESHIP,Great Eastern Shipping Co. Ltd.,Services,Cyclical (mid-cycle),shipping: freight-rate cycle,per-stock
+SCI,SCI,Shipping Corporation of India Ltd.,Services,Cyclical (mid-cycle),shipping: freight-rate cycle,per-stock
+APOLLOTYRE,APOLLOTYRE,Apollo Tyres Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+ARE&M,ARE_M,Amara Raja Energy & Mobility Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+ASAHIINDIA,ASAHIINDIA,Asahi India Glass Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+BAJAJ-AUTO,BAJAJ_AUTO,Bajaj Auto Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+BALKRISIND,BALKRISIND,Balkrishna Industries Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+BELRISE,BELRISE,Belrise Industries Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+BHARATFORG,BHARATFORG,Bharat Forge Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+BOSCHLTD,BOSCHLTD,Bosch Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+CEATLTD,CEATLTD,Ceat Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+CIEINDIA,CIEINDIA,CIE Automotive India Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+CRAFTSMAN,CRAFTSMAN,Craftsman Automation Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+EICHERMOT,EICHERMOT,Eicher Motors Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+ENDURANCE,ENDURANCE,Endurance Technologies Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+EXIDEIND,EXIDEIND,Exide Industries Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+FORCEMOT,FORCEMOT,Force Motors Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+GABRIEL,GABRIEL,Gabriel India Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+HEROMOTOCO,HEROMOTOCO,Hero MotoCorp Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+HYUNDAI,HYUNDAI,Hyundai Motor India Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+JBMA,JBMA,JBM Auto Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+JKTYRE,JKTYRE,JK Tyre & Industries Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+M&M,M_M,Mahindra & Mahindra Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+MARUTI,MARUTI,Maruti Suzuki India Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+MINDACORP,MINDACORP,Minda Corporation Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+MOTHERSON,MOTHERSON,Samvardhana Motherson International Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+MRF,MRF,MRF Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+MSUMI,MSUMI,Motherson Sumi Wiring India Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+OLECTRA,OLECTRA,Olectra Greentech Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+RKFORGE,RKFORGE,Ramkrishna Forgings Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+SANSERA,SANSERA,Sansera Engineering Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+SCHAEFFLER,SCHAEFFLER,Schaeffler India Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+SHRIPISTON,SHRIPISTON,SPR Auto Technologies Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+SONACOMS,SONACOMS,Sona BLW Precision Forgings Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+TENNIND,TENNIND,Tenneco Clean Air India Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+TIINDIA,TIINDIA,Tube Investments of India Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+TMPV,TMPV,Tata Motors Passenger Vehicles Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+TVSMOTOR,TVSMOTOR,TVS Motor Company Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+UNOMINDA,UNOMINDA,UNO Minda Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+ZFCVINDIA,ZFCVINDIA,ZF Commercial Vehicle Control Systems India Ltd.,Automobile and Auto Components,General / compounder,auto / auto components: P/E-led,NSE industry default
+ABB,ABB,ABB India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+ACE,ACE,Action Construction Equipment Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+AIAENG,AIAENG,AIA Engineering Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+APARINDS,APARINDS,Apar Industries Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+APLAPOLLO,APLAPOLLO,APL Apollo Tubes Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+ASTRAL,ASTRAL,Astral Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+AZAD,AZAD,Azad Engineering Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+BDL,BDL,Bharat Dynamics Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+BEL,BEL,Bharat Electronics Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+BEML,BEML,BEML Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+BHEL,BHEL,Bharat Heavy Electricals Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+CARBORUNIV,CARBORUNIV,Carborundum Universal Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+CGPOWER,CGPOWER,CG Power and Industrial Solutions Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+COCHINSHIP,COCHINSHIP,Cochin Shipyard Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+CPPLUS,CPPLUS,Aditya Infotech Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+CUMMINSIND,CUMMINSIND,Cummins India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+DATAPATTNS,DATAPATTNS,Data Patterns (India) Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+ELECON,ELECON,Elecon Engineering Co. Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+ELGIEQUIP,ELGIEQUIP,Elgi Equipments Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+EMMVEE,EMMVEE,Emmvee Photovoltaic Power Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+ENRIN,ENRIN,Siemens Energy India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+ESCORTS,ESCORTS,Escorts Kubota Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+FINCABLES,FINCABLES,Finolex Cables Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+GRSE,GRSE,Garden Reach Shipbuilders & Engineers Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+GVT&D,GVT_D,GE Vernova T&D India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+HAL,HAL,Hindustan Aeronautics Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+HBLENGINE,HBLENGINE,HBL Engineering Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+HONAUT,HONAUT,Honeywell Automation India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+INOXINDIA,INOXINDIA,INOX India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+INOXWIND,INOXWIND,Inox Wind Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+JWL,JWL,Jupiter Wagons Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+JYOTICNC,JYOTICNC,Jyoti CNC Automation Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+KAYNES,KAYNES,Kaynes Technology India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+KEI,KEI,KEI Industries Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+KIRLOSBROS,KIRLOSBROS,Kirloskar Brothers Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+KIRLOSENG,KIRLOSENG,Kirloskar Oil Eng Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+KSB,KSB,KSB Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+MAZDOCK,MAZDOCK,Mazagoan Dock Shipbuilders Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+MTARTECH,MTARTECH,MTAR Technologies Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+POLYCAB,POLYCAB,Polycab India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+POWERINDIA,POWERINDIA,Hitachi Energy India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+PREMIERENE,PREMIERENE,Premier Energies Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+PTCIL,PTCIL,PTC Industries Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+RHIM,RHIM,RHI MAGNESITA INDIA LTD.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+RRKABEL,RRKABEL,R R Kabel Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+SCHNEIDER,SCHNEIDER,Schneider Electric Infrastructure Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+SIEMENS,SIEMENS,Siemens Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+SUPREMEIND,SUPREMEIND,Supreme Industries Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+SUZLON,SUZLON,Suzlon Energy Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+SYRMA,SYRMA,Syrma SGS Technology Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+TARIL,TARIL,Transformers And Rectifiers (India) Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+TDPOWERSYS,TDPOWERSYS,TD Power Systems Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+TEGA,TEGA,Tega Industries Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+THERMAX,THERMAX,Thermax Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+TIMKEN,TIMKEN,Timken India Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+TITAGARH,TITAGARH,Titagarh Rail Systems Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+TRITURBINE,TRITURBINE,Triveni Turbine Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+USHAMART,USHAMART,Usha Martin Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+WAAREEENER,WAAREEENER,Waaree Energies Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+ZENTEC,ZENTEC,Zen Technologies Ltd.,Capital Goods,General / compounder,capital goods: P/E on order book,NSE industry default
+AARTIIND,AARTIIND,Aarti Industries Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+AETHER,AETHER,Aether Industries Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+ANURAS,ANURAS,Anupam Rasayan India Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+ATUL,ATUL,Atul Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+CLEAN,CLEAN,Clean Science and Technology Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+COROMANDEL,COROMANDEL,Coromandel International Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+DEEPAKNTR,DEEPAKNTR,Deepak Nitrite Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+FLUOROCHEM,FLUOROCHEM,Gujarat Fluorochemicals Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+HSCL,HSCL,Himadri Speciality Chemical Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+JUBLINGREA,JUBLINGREA,Jubilant Ingrevia Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+LINDEINDIA,LINDEINDIA,Linde India Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+NAVINFLUOR,NAVINFLUOR,Navin Fluorine International Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+PIDILITIND,PIDILITIND,Pidilite Industries Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+PIIND,PIIND,PI Industries Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+PRIVISCL,PRIVISCL,Privi Speciality Chemicals Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+SOLARINDS,SOLARINDS,Solar Industries India Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+SRF,SRF,SRF Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+SUMICHEM,SUMICHEM,Sumitomo Chemical India Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+SWANCORP,SWANCORP,Swan Corp Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+UPL,UPL,UPL Ltd.,Chemicals,General / compounder,chemicals: P/E-led,NSE industry default
+AFCONS,AFCONS,Afcons Infrastructure Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+CEMPRO,CEMPRO,Cemindia Projects Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+ENGINERSIN,ENGINERSIN,Engineers India Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+IRCON,IRCON,IRCON International Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+KEC,KEC,Kec International Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+KPIL,KPIL,Kalpataru Projects International Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+LT,LT,Larsen & Toubro Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+NBCC,NBCC,NBCC (India) Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+NCC,NCC,NCC Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+RITES,RITES,RITES Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+RVNL,RVNL,Rail Vikas Nigam Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+TECHNOE,TECHNOE,Techno Electric & Engineering Company Ltd.,Construction,General / compounder,EPC: P/E on order book,NSE industry default
+AMBER,AMBER,Amber Enterprises India Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+ASIANPAINT,ASIANPAINT,Asian Paints Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+BATAINDIA,BATAINDIA,Bata India Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+BERGEPAINT,BERGEPAINT,Berger Paints India Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+BLUESTARCO,BLUESTARCO,Blue Star Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+CROMPTON,CROMPTON,Crompton Greaves Consumer Electricals Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+DIXON,DIXON,Dixon Technologies (India) Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+HAVELLS,HAVELLS,Havells India Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+KAJARIACER,KAJARIACER,Kajaria Ceramics Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+KALYANKJIL,KALYANKJIL,Kalyan Jewellers India Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+LGEINDIA,LGEINDIA,LG Electronics India Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+PGEL,PGEL,PG Electroplast Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+THANGAMAYL,THANGAMAYL,Thangamayil Jewellery Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+TITAN,TITAN,Titan Company Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+VOLTAS,VOLTAS,Voltas Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+WHIRLPOOL,WHIRLPOOL,Whirlpool of India Ltd.,Consumer Durables,General / compounder,consumer durables: P/E-led,NSE industry default
+BLS,BLS,BLS International Services Ltd.,Consumer Services,General / compounder,consumer services: P/E-led,NSE industry default
+CARTRADE,CARTRADE,Cartrade Tech Ltd.,Consumer Services,General / compounder,consumer services: P/E-led,NSE industry default
+DMART,DMART,Avenue Supermarts Ltd.,Consumer Services,General / compounder,consumer services: P/E-led,NSE industry default
+INDIAMART,INDIAMART,Indiamart Intermesh Ltd.,Consumer Services,General / compounder,consumer services: P/E-led,NSE industry default
+IRCTC,IRCTC,Indian Railway Catering And Tourism Corporation Ltd.,Consumer Services,General / compounder,consumer services: P/E-led,NSE industry default
+NAUKRI,NAUKRI,Info Edge (India) Ltd.,Consumer Services,General / compounder,consumer services: P/E-led,NSE industry default
+TBOTEK,TBOTEK,TBO Tek Ltd.,Consumer Services,General / compounder,consumer services: P/E-led,NSE industry default
+TRENT,TRENT,Trent Ltd.,Consumer Services,General / compounder,consumer services: P/E-led,NSE industry default
+VMM,VMM,Vishal Mega Mart Ltd.,Consumer Services,General / compounder,consumer services: P/E-led,NSE industry default
+ABDL,ABDL,Allied Blenders and Distillers Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+AVANTIFEED,AVANTIFEED,Avanti Feeds Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+BRITANNIA,BRITANNIA,Britannia Industries Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+CCL,CCL,CCL Products (I) Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+COLPAL,COLPAL,Colgate Palmolive (India) Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+CUPID,CUPID,Cupid Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+DABUR,DABUR,Dabur India Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+DOMS,DOMS,DOMS Industries Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+EMAMILTD,EMAMILTD,Emami Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+GILLETTE,GILLETTE,Gillette India Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+GODFRYPHLP,GODFRYPHLP,Godfrey Phillips India Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+GODREJCP,GODREJCP,Godrej Consumer Products Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+HINDUNILVR,HINDUNILVR,Hindustan Unilever Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+HONASA,HONASA,Honasa Consumer Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+ITC,ITC,ITC Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+LTFOODS,LTFOODS,LT Foods Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+MARICO,MARICO,Marico Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+NESTLEIND,NESTLEIND,Nestle India Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+PATANJALI,PATANJALI,Patanjali Foods Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+RADICO,RADICO,Radico Khaitan Ltd,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+TATACONSUM,TATACONSUM,Tata Consumer Products Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+UBL,UBL,United Breweries Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+UNITDSPR,UNITDSPR,United Spirits Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+VBL,VBL,Varun Beverages Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+ZYDUSWELL,ZYDUSWELL,Zydus Wellness Ltd.,Fast Moving Consumer Goods,General / compounder,FMCG compounder,NSE industry default
+360ONE,360ONE,360 ONE WAM Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+ABSLAMC,ABSLAMC,Aditya Birla Sun Life AMC Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+ANANDRATHI,ANANDRATHI,Anand Rathi Wealth Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+ANGELONE,ANGELONE,Angel One Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+BSE,BSE,BSE Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+CAMS,CAMS,Computer Age Management Services Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+CDSL,CDSL,Central Depository Services (India) Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+CHOICEIN,CHOICEIN,Choice International Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+CRISIL,CRISIL,CRISIL Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+GROWW,GROWW,Billionbrains Garage Ventures Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+HDFCAMC,HDFCAMC,HDFC Asset Management Company Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+ICICIAMC,ICICIAMC,ICICI Prudential Asset Management Company Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+IEX,IEX,Indian Energy Exchange Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+JMFINANCIL,JMFINANCIL,JM Financial Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+KFINTECH,KFINTECH,Kfin Technologies Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+MCX,MCX,Multi Commodity Exchange of India Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+MOTILALOFS,MOTILALOFS,Motilal Oswal Financial Services Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+NAM-INDIA,NAM_INDIA,Nippon Life India Asset Management Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+NUVAMA,NUVAMA,Nuvama Wealth Management Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+UTIAMC,UTIAMC,UTI Asset Management Company Ltd.,Financial Services,General / compounder,capital-light financial: P/E,NSE industry default
+ABBOTINDIA,ABBOTINDIA,Abbott India Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+ACUTAAS,ACUTAAS,Acutaas Chemicals Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+AJANTPHARM,AJANTPHARM,Ajanta Pharmaceuticals Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+ALKEM,ALKEM,Alkem Laboratories Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+ANTHEM,ANTHEM,Anthem Biosciences Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+AUROPHARMA,AUROPHARMA,Aurobindo Pharma Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+BIOCON,BIOCON,Biocon Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+CAPLIPOINT,CAPLIPOINT,Caplin Point Laboratories Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+CIPLA,CIPLA,Cipla Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+COHANCE,COHANCE,Cohance Lifesciences Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+CONCORDBIO,CONCORDBIO,Concord Biotech Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+DIVISLAB,DIVISLAB,Divi's Laboratories Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+DRREDDY,DRREDDY,Dr. Reddy's Laboratories Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+EMCURE,EMCURE,Emcure Pharmaceuticals Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+GLAND,GLAND,Gland Pharma Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+GLAXO,GLAXO,Glaxosmithkline Pharmaceuticals Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+GLENMARK,GLENMARK,Glenmark Pharmaceuticals Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+GRANULES,GRANULES,Granules India Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+IPCALAB,IPCALAB,Ipca Laboratories Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+LALPATHLAB,LALPATHLAB,Dr. Lal Path Labs Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+LAURUSLABS,LAURUSLABS,Laurus Labs Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+LUPIN,LUPIN,Lupin Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+MANKIND,MANKIND,Mankind Pharma Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+NATCOPHARM,NATCOPHARM,NATCO Pharma Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+NEULANDLAB,NEULANDLAB,Neuland Laboratories Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+ONESOURCE,ONESOURCE,Onesource Specialty Pharma Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+POLYMED,POLYMED,Poly Medicure Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+PPLPHARMA,PPLPHARMA,Piramal Pharma Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+RUBICON,RUBICON,Rubicon Research Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+SAILIFE,SAILIFE,Sai Life Sciences Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+SUNPHARMA,SUNPHARMA,Sun Pharmaceutical Industries Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+SYNGENE,SYNGENE,Syngene International Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+TORNTPHARM,TORNTPHARM,Torrent Pharmaceuticals Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+VIJAYA,VIJAYA,Vijaya Diagnostic Centre Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+WOCKPHARMA,WOCKPHARMA,Wockhardt Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+ZYDUSLIFE,ZYDUSLIFE,Zydus Lifesciences Ltd.,Healthcare,General / compounder,pharma / diagnostics: P/E-led,NSE industry default
+AFFLE,AFFLE,Affle 3i Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+BBOX,BBOX,Black Box Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+BSOFT,BSOFT,Birlasoft Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+COFORGE,COFORGE,Coforge Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+CYIENT,CYIENT,Cyient Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+FRACTAL,FRACTAL,Fractal Analytics Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+HCLTECH,HCLTECH,HCL Technologies Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+HEXT,HEXT,Hexaware Technologies Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+IKS,IKS,Inventurus Knowledge Solutions Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+INFY,INFY,Infosys Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+INTELLECT,INTELLECT,Intellect Design Arena Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+KPITTECH,KPITTECH,KPIT Technologies Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+LTM,LTM,LTM Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+LTTS,LTTS,L&T Technology Services Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+MPHASIS,MPHASIS,MphasiS Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+NETWEB,NETWEB,Netweb Technologies India Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+OFSS,OFSS,Oracle Financial Services Software Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+PERSISTENT,PERSISTENT,Persistent Systems Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+SAGILITY,SAGILITY,Sagility Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+TATAELXSI,TATAELXSI,Tata Elxsi Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+TATATECH,TATATECH,Tata Technologies Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+TCS,TCS,Tata Consultancy Services Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+TECHM,TECHM,Tech Mahindra Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+WIPRO,WIPRO,Wipro Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+ZENSARTECH,ZENSARTECH,Zensar Technolgies Ltd.,Information Technology,General / compounder,IT services: P/E-led,NSE industry default
+PFOCUS,PFOCUS,Prime Focus Ltd.,Media Entertainment & Publication,General / compounder,media: P/E-led,NSE industry default
+SUNTV,SUNTV,Sun TV Network Ltd.,Media Entertainment & Publication,General / compounder,media: P/E-led,NSE industry default
+ZEEL,ZEEL,Zee Entertainment Enterprises Ltd.,Media Entertainment & Publication,General / compounder,media: P/E-led,NSE industry default
+ATGL,ATGL,Adani Total Gas Ltd.,Oil Gas & Consumable Fuels,General / compounder,city gas / lubricants: P/E on volume growth,per-stock
+CASTROLIND,CASTROLIND,Castrol India Ltd.,Oil Gas & Consumable Fuels,General / compounder,city gas / lubricants: P/E on volume growth,per-stock
+IGL,IGL,Indraprastha Gas Ltd.,Oil Gas & Consumable Fuels,General / compounder,city gas / lubricants: P/E on volume growth,per-stock
+MGL,MGL,Mahanagar Gas Ltd.,Oil Gas & Consumable Fuels,General / compounder,city gas / lubricants: P/E on volume growth,per-stock
+CMPDI,CMPDI,Central Mine Planning & Design Institute Ltd.,Services,General / compounder,services: P/E-led,NSE industry default
+ECLERX,ECLERX,eClerx Services Ltd.,Services,General / compounder,services: P/E-led,NSE industry default
+FSL,FSL,Firstsource Solutions Ltd.,Services,General / compounder,services: P/E-led,NSE industry default
+IGIL,IGIL,International Gemological Institute Ltd.,Services,General / compounder,services: P/E-led,NSE industry default
+MMTC,MMTC,MMTC Ltd.,Services,General / compounder,services: P/E-led,NSE industry default
+REDINGTON,REDINGTON,Redington Ltd.,Services,General / compounder,services: P/E-led,NSE industry default
+HFCL,HFCL,HFCL Ltd.,Telecommunication,General / compounder,telecom equipment / services,NSE industry default
+ITI,ITI,ITI Ltd.,Telecommunication,General / compounder,telecom equipment / services,NSE industry default
+RAILTEL,RAILTEL,Railtel Corporation Of India Ltd.,Telecommunication,General / compounder,telecom equipment / services,NSE industry default
+STLTECH,STLTECH,Sterlite Technologies Ltd.,Telecommunication,General / compounder,telecom equipment / services,NSE industry default
+TEJASNET,TEJASNET,Tejas Networks Ltd.,Telecommunication,General / compounder,telecom equipment / services,NSE industry default
+KPRMILL,KPRMILL,K.P.R. Mill Ltd.,Textiles,General / compounder,textiles: P/E-led,NSE industry default
+PAGEIND,PAGEIND,Page Industries Ltd.,Textiles,General / compounder,textiles: P/E-led,NSE industry default
+TRIDENT,TRIDENT,Trident Ltd.,Textiles,General / compounder,textiles: P/E-led,NSE industry default
+VTL,VTL,Vardhman Textiles Ltd.,Textiles,General / compounder,textiles: P/E-led,NSE industry default
+WELSPUNLIV,WELSPUNLIV,Welspun Living Ltd.,Textiles,General / compounder,textiles: P/E-led,NSE industry default
+GRASIM,GRASIM,Grasim Industries Ltd.,Construction Materials,Holding co / conglomerate,conglomerate holding listed stakes (SOTP not in Pine),per-stock
+GODREJIND,GODREJIND,Godrej Industries Ltd.,Diversified,Holding co / conglomerate,diversified holding company,NSE industry default
+EIDPARRY,EIDPARRY,E.I.D. Parry (India) Ltd.,Fast Moving Consumer Goods,Holding co / conglomerate,conglomerate holding listed stakes (SOTP not in Pine),per-stock
+ABCAPITAL,ABCAPITAL,Aditya Birla Capital Ltd.,Financial Services,Holding co / conglomerate,financial holding company (SOTP not in Pine),per-stock
+AIIL,AIIL,Authum Investment & Infrastructure Ltd.,Financial Services,Holding co / conglomerate,financial holding company (SOTP not in Pine),per-stock
+BAJAJFINSV,BAJAJFINSV,Bajaj Finserv Ltd.,Financial Services,Holding co / conglomerate,financial holding company (SOTP not in Pine),per-stock
+BAJAJHLDNG,BAJAJHLDNG,Bajaj Holdings & Investment Ltd.,Financial Services,Holding co / conglomerate,financial holding company (SOTP not in Pine),per-stock
+CHOLAHLDNG,CHOLAHLDNG,Cholamandalam Financial Holdings Ltd.,Financial Services,Holding co / conglomerate,financial holding company (SOTP not in Pine),per-stock
+JIOFIN,JIOFIN,Jio Financial Services Ltd.,Financial Services,Holding co / conglomerate,financial holding company (SOTP not in Pine),per-stock
+TATAINVEST,TATAINVEST,Tata Investment Corporation Ltd.,Financial Services,Holding co / conglomerate,financial holding company (SOTP not in Pine),per-stock
+ADANIENT,ADANIENT,Adani Enterprises Ltd.,Metals & Mining,Holding co / conglomerate,conglomerate holding listed stakes (SOTP not in Pine),per-stock
+CANHLIFE,CANHLIFE,Canara HSBC Life Insurance Company Ltd.,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+GICRE,GICRE,General Insurance Corporation of India,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+HDFCLIFE,HDFCLIFE,HDFC Life Insurance Company Ltd.,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+ICICIGI,ICICIGI,ICICI Lombard General Insurance Company Ltd.,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+ICICILIFE,ICICILIFE,ICICI Life Insurance Ltd.,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+LICI,LICI,Life Insurance Corporation of India,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+MFSL,MFSL,Max Financial Services Ltd.,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+NIACL,NIACL,The New India Assurance Company Ltd.,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+SBILIFE,SBILIFE,SBI Life Insurance Company Ltd.,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+STARHEALTH,STARHEALTH,Star Health and Allied Insurance Company Ltd.,Financial Services,Insurer,insurer (embedded value not in Pine),per-stock
+AADHARHFC,AADHARHFC,Aadhar Housing Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+AAVAS,AAVAS,Aavas Financiers Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+APTUS,APTUS,Aptus Value Housing Finance India Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+AUBANK,AUBANK,AU Small Finance Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+AXISBANK,AXISBANK,Axis Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+BAJAJHFL,BAJAJHFL,Bajaj Housing Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+BAJFINANCE,BAJFINANCE,Bajaj Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+BANDHANBNK,BANDHANBNK,Bandhan Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+BANKBARODA,BANKBARODA,Bank of Baroda,Financial Services,Lender (bank / NBFC),bank,per-stock
+BANKINDIA,BANKINDIA,Bank of India,Financial Services,Lender (bank / NBFC),bank,per-stock
+CANBK,CANBK,Canara Bank,Financial Services,Lender (bank / NBFC),bank,per-stock
+CANFINHOME,CANFINHOME,Can Fin Homes Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+CENTRALBK,CENTRALBK,Central Bank of India,Financial Services,Lender (bank / NBFC),bank,per-stock
+CGCL,CGCL,Capri Global Capital Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+CHOLAFIN,CHOLAFIN,Cholamandalam Investment and Finance Company Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+CREDITACC,CREDITACC,CreditAccess Grameen Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+CUB,CUB,City Union Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+FEDERALBNK,FEDERALBNK,Federal Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+FIVESTAR,FIVESTAR,Five-Star Business Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+HDBFS,HDBFS,HDB Financial Services Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+HDFCBANK,HDFCBANK,HDFC Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+HOMEFIRST,HOMEFIRST,Home First Finance Company India Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+HUDCO,HUDCO,Housing & Urban Development Corporation Ltd.,Financial Services,Lender (bank / NBFC),government lender (PSU NBFC),per-stock
+ICICIBANK,ICICIBANK,ICICI Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+IDBI,IDBI,IDBI Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+IDFCFIRSTB,IDFCFIRSTB,IDFC First Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+IFCI,IFCI,IFCI Ltd.,Financial Services,Lender (bank / NBFC),government lender (PSU NBFC),per-stock
+IIFL,IIFL,IIFL Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+INDIANB,INDIANB,Indian Bank,Financial Services,Lender (bank / NBFC),bank,per-stock
+INDUSINDBK,INDUSINDBK,IndusInd Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+IOB,IOB,Indian Overseas Bank,Financial Services,Lender (bank / NBFC),bank,per-stock
+IREDA,IREDA,Indian Renewable Energy Development Agency Ltd.,Financial Services,Lender (bank / NBFC),government lender (PSU NBFC),per-stock
+IRFC,IRFC,Indian Railway Finance Corporation Ltd.,Financial Services,Lender (bank / NBFC),government lender (PSU NBFC),per-stock
+J&KBANK,J_KBANK,Jammu & Kashmir Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+KARURVYSYA,KARURVYSYA,Karur Vysya Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+KOTAKBANK,KOTAKBANK,Kotak Mahindra Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+LICHSGFIN,LICHSGFIN,LIC Housing Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+LTF,LTF,L&T Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+M&MFIN,M_MFIN,Mahindra & Mahindra Financial Services Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+MAHABANK,MAHABANK,Bank of Maharashtra,Financial Services,Lender (bank / NBFC),bank,per-stock
+MANAPPURAM,MANAPPURAM,Manappuram Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+MUTHOOTFIN,MUTHOOTFIN,Muthoot Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+PFC,PFC,Power Finance Corporation Ltd.,Financial Services,Lender (bank / NBFC),government lender (PSU NBFC),per-stock
+PIRAMALFIN,PIRAMALFIN,Piramal Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+PNB,PNB,Punjab National Bank,Financial Services,Lender (bank / NBFC),bank,per-stock
+PNBHOUSING,PNBHOUSING,PNB Housing Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+POONAWALLA,POONAWALLA,Poonawalla Fincorp Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+RBLBANK,RBLBANK,RBL Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+RECLTD,RECLTD,REC Ltd.,Financial Services,Lender (bank / NBFC),government lender (PSU NBFC),per-stock
+SAMMAANCAP,SAMMAANCAP,Sammaan Capital Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+SBICARD,SBICARD,SBI Cards and Payment Services Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+SBIN,SBIN,State Bank of India,Financial Services,Lender (bank / NBFC),bank,per-stock
+SHRIRAMFIN,SHRIRAMFIN,Shriram Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+SUNDARMFIN,SUNDARMFIN,Sundaram Finance Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+TATACAP,TATACAP,Tata Capital Ltd.,Financial Services,Lender (bank / NBFC),NBFC / housing finance,per-stock
+UCOBANK,UCOBANK,UCO Bank,Financial Services,Lender (bank / NBFC),bank,per-stock
+UNIONBANK,UNIONBANK,Union Bank of India,Financial Services,Lender (bank / NBFC),bank,per-stock
+YESBANK,YESBANK,Yes Bank Ltd.,Financial Services,Lender (bank / NBFC),bank,per-stock
+ATHERENERG,ATHERENERG,Ather Energy Ltd.,Automobile and Auto Components,Platform / new-age,"EV maker, loss-making: EV/Sales",per-stock
+OLAELEC,OLAELEC,Ola Electric Mobility Ltd.,Automobile and Auto Components,Platform / new-age,"EV maker, loss-making: EV/Sales",per-stock
+ETERNAL,ETERNAL,Eternal Ltd.,Consumer Services,Platform / new-age,internet platform: EV/Sales until profits are steady,per-stock
+FIRSTCRY,FIRSTCRY,Brainbees Solutions Ltd.,Consumer Services,Platform / new-age,internet platform: EV/Sales until profits are steady,per-stock
+LENSKART,LENSKART,Lenskart Solutions Ltd.,Consumer Services,Platform / new-age,internet platform: EV/Sales until profits are steady,per-stock
+MEESHO,MEESHO,Meesho Ltd.,Consumer Services,Platform / new-age,internet platform: EV/Sales until profits are steady,per-stock
+NYKAA,NYKAA,FSN E-Commerce Ventures Ltd.,Consumer Services,Platform / new-age,internet platform: EV/Sales until profits are steady,per-stock
+PWL,PWL,Physicswallah Ltd.,Consumer Services,Platform / new-age,internet platform: EV/Sales until profits are steady,per-stock
+SWIGGY,SWIGGY,Swiggy Ltd.,Consumer Services,Platform / new-age,internet platform: EV/Sales until profits are steady,per-stock
+URBANCO,URBANCO,Urban Company Ltd.,Consumer Services,Platform / new-age,internet platform: EV/Sales until profits are steady,per-stock
+PAYTM,PAYTM,One 97 Communications Ltd.,Financial Services,Platform / new-age,fintech platform: EV/Sales until profits are steady,per-stock
+PINELABS,PINELABS,Pine Labs Ltd.,Financial Services,Platform / new-age,fintech platform: EV/Sales until profits are steady,per-stock
+POLICYBZR,POLICYBZR,PB Fintech Ltd.,Financial Services,Platform / new-age,fintech platform: EV/Sales until profits are steady,per-stock
+DELHIVERY,DELHIVERY,Delhivery Ltd.,Services,Platform / new-age,logistics platform: EV/Sales until profits are steady,per-stock
+CESC,CESC,CESC Ltd.,Power,Yield (REIT / utility),regulated utility: P/B on regulated equity + DDM,per-stock
+NHPC,NHPC,NHPC Ltd.,Power,Yield (REIT / utility),regulated utility: P/B on regulated equity + DDM,per-stock
+NLCINDIA,NLCINDIA,NLC India Ltd.,Power,Yield (REIT / utility),regulated utility: P/B on regulated equity + DDM,per-stock
+NTPC,NTPC,NTPC Ltd.,Power,Yield (REIT / utility),regulated utility: P/B on regulated equity + DDM,per-stock
+POWERGRID,POWERGRID,Power Grid Corporation of India Ltd.,Power,Yield (REIT / utility),regulated utility: P/B on regulated equity + DDM,per-stock
+SJVN,SJVN,SJVN Ltd.,Power,Yield (REIT / utility),regulated utility: P/B on regulated equity + DDM,per-stock
+TORNTPOWER,TORNTPOWER,Torrent Power Ltd.,Power,Yield (REIT / utility),regulated utility: P/B on regulated equity + DDM,per-stock
+BAGMANE,BAGMANE,Bagmane Prime Office REIT,Realty,Yield (REIT / utility),REIT: distribution yield,per-stock
+BIRET,BIRET,Brookfield India Real Estate Trust,Realty,Yield (REIT / utility),REIT: distribution yield,per-stock
+EMBASSY,EMBASSY,EMBASSY OFFICE PARKS REIT,Realty,Yield (REIT / utility),REIT: distribution yield,per-stock

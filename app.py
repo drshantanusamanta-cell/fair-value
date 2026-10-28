@@ -2,6 +2,12 @@
 
 Sources: yfinance (prices, statements, estimates), Screener.in (10-yr Indian financials, ratios, peers,
 shareholding) and the DhanHQ Data API company-info endpoint (overview, ratios, shareholding).
+
+v2 (28 Oct 2026) — aligned with the Pine indicator "Shantanu's Valuation Matrix with Z-Score":
+8 valuation groups (hand-checked Nifty 500 list + yfinance fallback) decide the default composite;
+own-history P/B, EV/EBITDA (mid-cycle for cyclicals) and EV/Sales bands; DDM steady-payer rule;
+minority interest deducted; Graham Number on 3-yr average EPS; Graham growth book form by default;
+history-based composite with a 3-year gap Z-score for swing entries.
 Run:  streamlit run app.py
 """
 from __future__ import annotations
@@ -20,7 +26,10 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import data_sources as ds
+import groups as gp
 import valuation as v
+import zcore as zc
+from plotly.subplots import make_subplots
 
 st.set_page_config(page_title="Fair Value Workbench", page_icon="⚖️", layout="wide")
 
@@ -222,6 +231,11 @@ def get_peer_info(sym: str) -> dict:
         return {}
 
 
+@st.cache_data(show_spinner=False)
+def get_group_table() -> dict:
+    return gp.load_list()
+
+
 # ───────────────────────────── sidebar ─────────────────────────────
 with st.sidebar:
     st.header("⚖️ Fair Value Workbench")
@@ -264,6 +278,7 @@ with st.sidebar:
         st.caption("⚠️ Experimental: the company-info endpoint is not in Dhan's official docs; it may fail even "
                    "with valid credentials.")
 
+    group_box = st.container()    # valuation group + model options, filled once the data is in
     st.subheader("Assumptions")
     _rf_secret = ds.num(secret("app", "risk_free_rate") or secret("", "RISK_FREE_RATE"))
     st.session_state.setdefault("rf_pct", float(_rf_secret) if finite(_rf_secret) and 0 < _rf_secret < 20 else 7.45)
@@ -311,12 +326,54 @@ with st.spinner(f"Fetching {symbol} from the enabled sources…"):
 
 vals, prov, ext = ds.build_fundamentals(yfd, scr, dh)
 
+# ───────────────────────────── valuation group ─────────────────────────────
+GROUP_CHOICES = st.session_state.setdefault("fv_group_choice", {})   # symbol → group code (or absent = Auto)
+_auto = gp.resolve(symbol, ext.get("industry"), ext.get("sector"), None, get_group_table())
+_codes = ["AUTO"] + list(gp.GROUPS)
+_fmt = lambda c: (f"Auto → {_auto['label']}" if c == "AUTO" else gp.GROUPS[c][0])
+
+
+def _store_group(sym=symbol):
+    c = st.session_state[f"grp__{sym}"]
+    if c == "AUTO":
+        GROUP_CHOICES.pop(sym, None)
+    else:
+        GROUP_CHOICES[sym] = c
+
+
+with group_box:
+    st.subheader("Valuation group")
+    _cur = GROUP_CHOICES.get(symbol, "AUTO")
+    st.selectbox("Group (decides the default composite)", _codes, index=_codes.index(_cur), format_func=_fmt,
+                 key=f"grp__{symbol}", on_change=_store_group,
+                 help="Auto uses the hand-checked Nifty 500 list, then yfinance's industry and sector. "
+                      "Your choice is remembered per stock for this session.")
+    G = gp.resolve(symbol, ext.get("industry"), ext.get("sector"), GROUP_CHOICES.get(symbol), get_group_table())
+    st.caption(f"Basis: {G['basis']} · {G['reason']}")
+    with st.expander("Model options"):
+        ddm_mode = st.radio("DDM in the composite", ["Auto (steady payers)", "On", "Off"], index=0,
+                            help="Auto: dividend paid in each of the last 3 fiscal years, no cut > 25%, yield ≥ 2%, "
+                                 "payout 30–90% (same rule as the Pine script). The Yield group uses the DDM "
+                                 "whenever a dividend is paid, unless Off.")
+        graham_form = st.radio("Graham growth formula", ["Book: EPS × (8.5 + 2g)", "Yield-scaled: × 4.4 ÷ Y"], index=0,
+                               help="Book = The Intelligent Investor, Ch. 11 (default, as in the Pine script). "
+                                    "Yield-scaled is a later revision; at Y ≈ 7.4% it is about 40% lower.")
+        mid_n = st.slider("Mid-cycle EBITDA: average of last N fiscal years", 3, 10, 5,
+                          help="Used for the EV/EBITDA band of the Cyclical group (needs at least 3 years).")
+grp = G["code"]
+is_fin = grp in gp.FIN_GROUPS
+
 # ───────────────────────────── header ─────────────────────────────
 name = ext.get("name") or symbol
 st.title(f"{name}")
 meta = " · ".join(x for x in [f"NSE: {symbol}", ext.get("sector"), ext.get("industry"),
                               scr.get("basis") and f"{scr['basis']} financials"] if x)
 st.caption(meta)
+st.markdown(f"<span style='background:{G['colour']};color:white;padding:3px 10px;border-radius:12px;"
+            f"font-weight:600;font-size:0.85rem'>{G['label']}</span> "
+            f"<span style='color:gray;font-size:0.85rem'>· {G['basis']}</span>", unsafe_allow_html=True)
+if gp.NOTES.get(grp):
+    st.caption(gp.NOTES[grp])
 
 badge = {True: "🟢", False: "🔴"}
 s1, s2, s3 = st.columns(3)
@@ -393,7 +450,7 @@ with tabs[9]:
                "at web.dhan.co → Profile → DhanHQ Trading APIs and save it here. The token is never shown in full.")
 
 # ───────────────────────────── Inputs & sources ─────────────────────────────
-CR_FIELDS = {"market_cap", "ebit", "interest", "revenue", "ebitda", "fcf", "cfo", "debt", "cash", "shares"}
+CR_FIELDS = {"market_cap", "ebit", "interest", "revenue", "ebitda", "fcf", "cfo", "debt", "cash", "shares", "minority"}
 PCT_FIELDS = {"roe", "tax_rate", "payout"}
 
 
@@ -444,8 +501,7 @@ if not finite(shares) and finite(F["market_cap"]):
     shares = F["market_cap"] / price
 mcap = price * shares if finite(shares) else F["market_cap"]
 net_debt = F["net_debt"]
-sect_txt = f"{ext.get('sector') or ''} {ext.get('industry') or ''} {name}".lower()
-is_fin = any(w in sect_txt for w in ["bank", "financial", "insurance", "nbfc", "finance", "capital markets"])
+minority = F["minority"] if finite(F.get("minority")) and F["minority"] > 0 else 0.0
 
 eps_annual, sales_annual = ext.get("eps_annual"), ext.get("sales_annual")
 eps_cagr, eps_n = v.series_cagr(list(eps_annual.values) if eps_annual is not None else [], 5)
@@ -519,8 +575,13 @@ wacc_ = v.wacc(ke, kd, tax, mcap, F["debt"] if finite(F["debt"]) else 0.0)
 with tabs[2]:
     st.subheader("Two-stage FCFF DCF")
     if is_fin:
-        st.warning("This looks like a financial company. Free cash flow, EBIT and net debt are not meaningful for "
-                   "lenders/insurers — lean on Residual income, Justified P/B and the P/E band instead.")
+        st.warning(f"Valuation group **{G['label']}**: free cash flow, EBIT and net debt are not meaningful here, so "
+                   "the DCF stays out of the default composite — lean on Residual income, Justified P/B and the "
+                   "P/B and P/E bands instead.")
+    _fcf_src = prov.loc[prov["key"] == "fcf", "Source"]
+    if not _fcf_src.empty and "proxy" in str(_fcf_src.iloc[0]):
+        st.warning("Free cash flow here is Screener's CFO + investing cash flow — investing cash includes treasury "
+                   "investments, so FCF can be badly understated for cash-rich companies. Check it on the Inputs tab.")
     c1, c2, c3 = st.columns(3)
     latest_fcf = F["fcf"]
     avg3 = float(fcf_hist.dropna().iloc[-3:].mean()) if fcf_hist is not None and len(fcf_hist.dropna()) >= 2 else latest_fcf
@@ -551,7 +612,7 @@ with tabs[2]:
     use_fcfe = not disc_basis.startswith("WACC")
     int_at = F["interest"] * (1 - tax) if finite(F["interest"]) else 0.0
     cf0 = (base_fcf - int_at) if use_fcfe and finite(base_fcf) else base_fcf
-    nd_used = 0.0 if use_fcfe else net_debt
+    nd_used = 0.0 if use_fcfe else net_debt + minority   # FCFF: net debt and minority interest rank ahead of shareholders
     dcf_key = "DCF (FCFE)" if use_fcfe else "DCF (FCFF)"
     if use_fcfe:
         st.caption(f"FCFE basis: base FCF {crore(base_fcf)} − after-tax interest {crore(int_at)} = {crore(cf0)}; "
@@ -572,10 +633,11 @@ with tabs[2]:
             st.warning("More than 75% of value sits in the terminal value — the result is very sensitive to "
                        "terminal growth and discount rate.")
         bridge = pd.DataFrame({
-            "Item": ["PV of explicit FCF", "PV of terminal value", "Value before debt adj.", "less: net debt", "Equity value",
+            "Item": ["PV of explicit FCF", "PV of terminal value", "Value before debt adj.", "less: net debt + minority", "Equity value",
                      "÷ shares", "Fair value / share"],
             "Value": [crore(res["pv_explicit"]), crore(res["pv_terminal"]), crore(res["enterprise_value"]),
-                      crore(nd_used), crore(res["equity_value"]), f"{shares / 1e7:,.2f} Cr", inr(ps)]})
+                      crore(nd_used) + (f" (incl. minority {crore(minority)})" if not use_fcfe and minority else ""),
+                      crore(res["equity_value"]), f"{shares / 1e7:,.2f} Cr", inr(ps)]})
         b1, b2 = st.columns([1, 1.4])
         b1.dataframe(bridge, hide_index=True, width="stretch")
         tbl = res["table"].copy()
@@ -644,6 +706,13 @@ with tabs[4]:
         ddm2 = v.ddm_two_stage(dps, g_div, ke, g_term, years, fade)
         c1.metric("Gordon (single-stage, g∞)", inr(gor), pct(up(gor, price), sign=True) if gor else None)
         c1.metric("Two-stage DDM", inr(ddm2), pct(up(ddm2, price), sign=True) if ddm2 else None)
+        ddm_pass, ddm_why = v.ddm_steady_payer(ext.get("dps_annual"), price, dps, F["payout"])
+        ddm_in = (ddm_mode == "On" or (ddm_mode.startswith("Auto") and ddm_pass)
+                  or (grp in gp.DDM_ALWAYS and ddm_mode != "Off" and dps > 0))
+        (c1.success if ddm_in else c1.info)(
+            f"DDM {'enters' if ddm_in else 'stays out of'} the default composite — "
+            + (ddm_why if ddm_mode.startswith("Auto") else f"mode {ddm_mode}")
+            + (" · Yield group" if grp in gp.DDM_ALWAYS and ddm_mode != "Off" else ""))
         if ddm2:
             lo_d = v.ddm_two_stage(dps, g_div, ke + 0.01, g_term, years, fade)
             hi_d = v.ddm_two_stage(dps, g_div, ke - 0.01, g_term, years, fade) if ke - 0.01 > g_term else ddm2
@@ -701,6 +770,80 @@ with tabs[5]:
     else:
         st.info("P/E band needs price history and a positive EPS history.")
 
+    # ── Own-history P/B, EV/EBITDA and EV/Sales bands (same idea as the P/E band) ──
+    BANDS: dict[str, dict] = {}
+    if band:
+        BANDS["P/E band (own history)"] = {"band": band, "kind": "ps", "metric_now": eps}
+    st.markdown("**Own-history bands — P/B, EV/EBITDA, EV/Sales**")
+    st.caption(f"Each compares today's multiple with this stock's own average over the same {band_years}-year window. "
+               "EV on each day = price × shares + net debt + minority interest. Share counts and net debt come from "
+               "Screener's yearly figures (cash from yfinance where it has history), so older EVs are approximate.")
+    sh_hist, nd_hist = ext.get("shares_annual"), ext.get("net_debt_annual")
+    if hist is not None and ext.get("bvps_annual") is not None and finite(F["bvps"]) and F["bvps"] > 0:
+        pbb = v.per_share_band(hist["Close"], ext["bvps_annual"], band_years, cap=30.0, label="pb")
+        if pbb:
+            BANDS["P/B band (own history)"] = {"band": pbb, "kind": "ps", "metric_now": F["bvps"]}
+    if hist is not None and finite(shares) and not is_fin:
+        use_mid = grp in gp.MID_CYCLE
+        eb_annual = v.rolling_fy_mean(ext.get("ebitda_annual"), mid_n) if use_mid else ext.get("ebitda_annual")
+        eb_now = (float(eb_annual.iloc[-1]) if eb_annual is not None and len(eb_annual) else float("nan")) if use_mid \
+            else F["ebitda"]
+        if eb_annual is not None and finite(eb_now) and eb_now > 0:
+            evb = v.ev_band(hist["Close"], eb_annual, sh_hist, shares, nd_hist, net_debt, minority, band_years, cap=60.0)
+            if evb:
+                BANDS["EV/EBITDA band (own history)"] = {"band": evb, "kind": "ev", "metric_now": eb_now,
+                                                         "note": f"mid-cycle {mid_n}y EBITDA" if use_mid else "TTM EBITDA"}
+        rev_annual = ext.get("sales_annual_abs")
+        if rev_annual is not None and finite(F["revenue"]) and F["revenue"] > 0:
+            evs = v.ev_band(hist["Close"], rev_annual, sh_hist, shares, nd_hist, net_debt, minority, band_years, cap=50.0)
+            if evs:
+                BANDS["EV/Sales band (own history)"] = {"band": evs, "kind": "ev", "metric_now": F["revenue"],
+                                                        "note": "TTM sales"}
+
+    def _band_fv(item, mult):
+        if item["kind"] == "ps":
+            return item["metric_now"] * mult if finite(item["metric_now"]) else None
+        return v.ev_fair_value(item["metric_now"], mult, net_debt, minority, shares)
+
+    new_bands = [k for k in BANDS if k != "P/E band (own history)"]
+    if new_bands:
+        cols = st.columns(len(new_bands))
+        for col, k in zip(cols, new_bands):
+            it, b_ = BANDS[k], BANDS[k]["band"]
+            fv_b = _band_fv(it, b_["mean"])
+            lo_b, hi_b = _band_fv(it, max(b_["mean"] - b_["std"], 0)), _band_fv(it, b_["mean"] + b_["std"])
+            short = k.split(" band")[0]
+            col.metric(f"{short} now / mean", f"{b_['current']:.1f}x / {b_['mean']:.1f}x", f"Z {b_['z']:+.2f}",
+                       delta_color="inverse")
+            col.metric(f"Fair value at mean {short}", inr(fv_b), pct(up(fv_b, price), sign=True) if fv_b else None)
+            if it.get("note"):
+                col.caption(it["note"])
+            if fv_b:
+                results[k] = {"base": fv_b, "low": lo_b if lo_b else fv_b, "high": hi_b if hi_b else fv_b,
+                              "note": f"{band_years}y mean {b_['mean']:.1f}x" + (f" · {it['note']}" if it.get("note") else "")}
+        with st.expander("Band charts"):
+            for k in new_bands:
+                it, b_ = BANDS[k], BANDS[k]["band"]
+                s_ = b_["series"]
+                s_ = s_[s_.index >= b_["window_start"] - pd.Timedelta(days=365)]
+
+                def line(mult, s_=s_, it=it):
+                    if it["kind"] == "ps":
+                        return s_["metric"] * mult
+                    return (s_["metric"] * mult - s_["net_debt"] - minority) / s_["shares"]
+
+                f_ = go.Figure()
+                f_.add_trace(go.Scatter(x=s_.index, y=line(b_["mean"] + b_["std"]), line=dict(width=0), showlegend=False, hoverinfo="skip"))
+                f_.add_trace(go.Scatter(x=s_.index, y=line(max(b_["mean"] - b_["std"], 0)), fill="tonexty",
+                                        fillcolor="rgba(120,144,156,0.18)", line=dict(width=0), name="±1σ"))
+                f_.add_trace(go.Scatter(x=s_.index, y=line(b_["mean"]), name="Value at mean multiple", line=dict(color="#78909C", dash="dash")))
+                f_.add_trace(go.Scatter(x=s_.index, y=s_["price"], name="Price", line=dict(color="#FFB300", width=2)))
+                f_.update_layout(title=k, height=320, margin=dict(l=10, r=10, t=40, b=10), legend=dict(orientation="h", y=1.12))
+                st.plotly_chart(f_, width="stretch")
+    else:
+        st.caption("No P/B or EV band could be built (needs Screener's yearly history; EV bands are skipped for "
+                   "lenders, insurers and holding companies).")
+
     st.markdown("**Peers (Screener.in)**")
     peers = scr.get("peers")
     peer_pe_med = None
@@ -746,7 +889,7 @@ with tabs[5]:
             cc[1].metric("At peer P/B", inr(fv), f"{med_pb:.2f}x")
             results["Custom peers P/B"] = {"base": fv, "low": fv * 0.85, "high": fv * 1.15, "note": f"{med_pb:.2f}x"}
         if med_ev and finite(F["ebitda"]) and finite(shares) and F["ebitda"] > 0 and not is_fin:
-            fv = (F["ebitda"] * med_ev - net_debt) / shares
+            fv = (F["ebitda"] * med_ev - net_debt - minority) / shares
             cc[2].metric("At peer EV/EBITDA", inr(fv), f"{med_ev:.1f}x")
             if fv > 0:
                 results["Custom peers EV/EBITDA"] = {"base": fv, "low": fv * 0.85, "high": fv * 1.15, "note": f"{med_ev:.1f}x"}
@@ -764,27 +907,37 @@ with tabs[6]:
     eps, bvps = F["eps_ttm"], F["bvps"]
     c1, c2 = st.columns(2)
     gg_g = c1.slider("Growth for Graham formula %", 0.0, 20.0, min(round(default_g1 * 100 * 2) / 2, 20.0), 0.5) / 100
-    y_pct = c1.number_input("Bond yield Y % (10Y G-Sec)", value=round(rf * 100, 2), step=0.05)
-    gn = v.graham_number(eps, bvps)
-    gg = v.graham_growth(eps, gg_g, y_pct)
+    gform = "book" if graham_form.startswith("Book") else "yield"
+    y_pct = c1.number_input("Bond yield Y % (10Y G-Sec)", value=round(rf * 100, 2), step=0.05,
+                            disabled=gform == "book", help="Used only by the yield-scaled form (Model options in the sidebar).")
+    eps3 = v.avg_last(eps_annual, 3) if eps_annual is not None else None
+    eps_gn = eps3 if eps3 is not None else eps
+    gn = v.graham_number(eps_gn, bvps)
+    gg = v.graham_growth(eps, gg_g, y_pct, gform)
     c1.metric("Graham Number √(22.5·EPS·BVPS)", inr(gn), pct(up(gn, price), sign=True) if gn else None)
-    c1.metric("Graham growth EPS·(8.5+2g)·4.4/Y", inr(gg), pct(up(gg, price), sign=True) if gg else None)
+    c1.caption(f"EPS used: {'3-yr average of fiscal-year EPS' if eps3 is not None else 'TTM (fewer than 3 fiscal years available)'}"
+               f" = {inr(eps_gn, 2)}")
+    c1.metric("Graham growth " + ("EPS·(8.5+2g)" if gform == "book" else "EPS·(8.5+2g)·4.4/Y"), inr(gg),
+              pct(up(gg, price), sign=True) if gg else None)
     c1.caption("Graham Number assumes P/E ≤ 15 and P/B ≤ 1.5 — very conservative for Indian quality compounders.")
     epv_rate = c2.number_input("EPV capitalisation rate %", value=round(wacc_ * 100, 2), step=0.25) / 100
-    ep = v.epv(F["ebit"], tax, epv_rate, net_debt, shares) if not is_fin else None
+    ep = v.epv(F["ebit"], tax, epv_rate, net_debt, shares, minority) if not is_fin else None
     c2.metric("Earnings Power Value", inr(ep), pct(up(ep, price), sign=True) if ep else None)
-    c2.caption("EPV = EBIT·(1−t)/cost of capital − net debt: the business worth with zero growth. "
+    c2.caption("EPV = EBIT·(1−t)/cost of capital − net debt − minority interest: the business worth with zero growth. "
                "Price − EPV ≈ what the market pays for growth.")
     if ep and dcf_key in results:
         c2.metric("Growth premium in DCF over EPV", inr(results[dcf_key]["base"] - ep))
     if gn:
-        results["Graham Number"] = {"base": gn, "low": gn, "high": gn, "note": "15×P/E · 1.5×P/B"}
+        results["Graham Number"] = {"base": gn, "low": gn, "high": gn,
+                                    "note": "3-yr avg EPS" if eps3 is not None else "TTM EPS"}
     if gg:
-        results["Graham growth"] = {"base": gg, "low": v.graham_growth(eps, max(gg_g - 0.02, 0), y_pct),
-                                    "high": v.graham_growth(eps, gg_g + 0.02, y_pct), "note": f"g {pct(gg_g)}, Y {y_pct:.2f}%"}
+        results["Graham growth"] = {"base": gg, "low": v.graham_growth(eps, max(gg_g - 0.02, 0), y_pct, gform),
+                                    "high": v.graham_growth(eps, gg_g + 0.02, y_pct, gform),
+                                    "note": f"g {pct(gg_g)}" + (" · book form" if gform == "book" else f" · Y {y_pct:.2f}%")}
     if ep and ep > 0:
-        results["EPV"] = {"base": ep, "low": v.epv(F["ebit"], tax, epv_rate + 0.01, net_debt, shares),
-                          "high": v.epv(F["ebit"], tax, max(epv_rate - 0.01, 0.01), net_debt, shares), "note": f"r {pct(epv_rate)}"}
+        results["EPV"] = {"base": ep, "low": v.epv(F["ebit"], tax, epv_rate + 0.01, net_debt, shares, minority),
+                          "high": v.epv(F["ebit"], tax, max(epv_rate - 0.01, 0.01), net_debt, shares, minority),
+                          "note": f"r {pct(epv_rate)}"}
 
 # ───────────────────────────── SOTP ─────────────────────────────
 with tabs[7]:
@@ -847,9 +1000,18 @@ with tabs[0]:
     if not results:
         st.warning("No method produced a value — check the Inputs tab for missing data.")
     else:
-        avoid = {"Analyst target"} | ({"DCF (FCFF)", "DCF (FCFE)", "EPV", "Custom peers EV/EBITDA", "DDM (2-stage)"} if is_fin else set())
-        default_inc = [k for k in results if k not in avoid]
-        include = st.multiselect("Methods in the composite (median)", list(results), default=default_inc)
+        # Default composite = the methods of this stock's valuation group (same sets as the Pine script), plus
+        # Residual income for lenders/insurers and SOTP for holding companies once filled in.
+        grp_methods = set(gp.METHODS[grp])
+        default_inc = [k for k in results if k in grp_methods and (k != "DDM (2-stage)" or ddm_in)]
+        if not default_inc:   # nothing from the group's set produced a value → previous behaviour, so the page isn't empty
+            default_inc = [k for k in results if k != "Analyst target"
+                           and not (is_fin and k in {"DCF (FCFF)", "DCF (FCFE)", "EPV", "Custom peers EV/EBITDA"})]
+            st.info(f"None of the **{G['label']}** methods produced a value — showing all available methods instead.")
+        st.caption(f"**{G['label']}** default set: " + ", ".join(gp.METHODS[grp]) +
+                   ". Peer, sector and analyst values are shown but left out by default — add them below if you wish.")
+        include = st.multiselect("Methods in the composite (median)", list(results), default=default_inc,
+                                 key=f"inc_{symbol}_{grp}_{ddm_in}_{len(results)}")
         comp = v.composite(results, include)
         if comp:
             fv = comp["fair_value"]
@@ -891,5 +1053,71 @@ with tabs[0]:
                              "Assumptions": r_.get("note", "")} for k, r_ in results.items()])
         st.dataframe(tbl, hide_index=True, width="stretch",
                      column_config={c_: st.column_config.NumberColumn(format="%.1f") for c_ in ["Fair value", "Low", "High", "Upside %"]})
+        # ── History-based composite and its Z-score (the swing-entry signal) ──
+        st.markdown("### Composite Z-score — how cheap is price versus fair value, by this stock's own history?")
+        HISTORY_OK = zc.HISTORY_OK
+        z_methods = [k for k in include if k in HISTORY_OK]
+        zc1, zc2, zc3 = st.columns(3)
+        z_years = zc1.slider("Z lookback (years)", 1.0, 6.0, 3.0, 0.5, key="z_years",
+                             help="Default 3 years. Keep the same value on weekly and daily so the readings are comparable.")
+        z_freq = zc2.radio("Bars", ["Weekly", "Daily"], horizontal=True, key="z_freq")
+        min_years = zc3.slider("Band history needed before a band counts (years)", 1.0, 5.0, 2.0, 0.5, key="z_min",
+                               help="Each band's mean multiple uses only data up to that date (no look-ahead).")
+        hist_px = yfd.get("history")
+        _fy = int(eps_annual.notna().sum()) if eps_annual is not None else 0
+        if _fy < 6 and scr.get("basis") == "Consolidated":
+            st.info(f"Screener's consolidated page has only {_fy} fiscal years for {symbol}, which limits the bands and "
+                    "the Z-score. Try switching off **Prefer consolidated financials** (sidebar → Data sources) — the "
+                    "standalone page often goes back 10+ years.")
+        if hist_px is None or not z_methods:
+            st.info("The Z-score needs price history and at least one included method that can be rebuilt over time: "
+                    + ", ".join(HISTORY_OK) + ". DCF, DDM, residual income and peer values have no usable history.")
+        else:
+            px = v._clean_prices(hist_px["Close"])
+            hc = zc.composite_history(
+                px, ext, z_methods, band_years=band_years, min_years=min_years, mid_n=mid_n,
+                use_mid=grp in gp.MID_CYCLE, allow_ev=not is_fin, shares_now=shares, net_debt_now=net_debt,
+                minority=minority, ke=ke, g_term=g_term, tax=tax, epv_rate=epv_rate)
+            fair = [c for c in hc.columns if c not in ("composite", "n_methods")]
+            if hc.empty or hc["composite"].dropna().empty:
+                st.info("Not enough yearly history to rebuild the composite for this stock.")
+            else:
+                zdf = v.gap_zscore(px, hc["composite"], z_years, "W" if z_freq == "Weekly" else "D")
+                zz = zdf["z"].dropna()
+                z_now = float(zz.iloc[-1]) if not zz.empty else float("nan")
+                hc_now = float(hc["composite"].dropna().iloc[-1])
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric(f"Z now ({z_freq.lower()}, {z_years:g}y)", f"{z_now:+.2f}" if finite(z_now) else "warming up",
+                          "cheap" if finite(z_now) and z_now <= -1 else "rich" if finite(z_now) and z_now >= 1 else None,
+                          delta_color="normal" if finite(z_now) and z_now <= -1 else "inverse")
+                m2.metric("History-based composite", inr(hc_now), pct(up(hc_now, price), sign=True))
+                m3.metric("Headline composite", inr(comp["fair_value"]) if comp else "—")
+                m4.metric("Methods in the history", f"{int(hc['n_methods'].iloc[-1])} of {len(z_methods)}",
+                          f"Z from {zz.index[0]:%b %Y}" if not zz.empty else "needs more history", delta_color="off")
+                zplot = zdf[zdf.index >= (zz.index[0] if not zz.empty else zdf.index[0]) - pd.Timedelta(days=365)]
+                fz = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.62, 0.38], vertical_spacing=0.04)
+                fz.add_trace(go.Scatter(x=zplot.index, y=zplot["price"], name="Price", line=dict(color="#FFB300", width=2)), 1, 1)
+                fz.add_trace(go.Scatter(x=zplot.index, y=zplot["fair"], name="History-based composite",
+                                        line=dict(color="#1E88E5", width=2)), 1, 1)
+                fz.add_trace(go.Scatter(x=zplot.index, y=zplot["fair"] * (1 - mos), name=f"Buy line ({mos:.0%} MoS)",
+                                        line=dict(color="#43A047", width=1, dash="dot")), 1, 1)
+                zc = ["#00C853" if z <= -2 else "#8FE3AE" if z <= -1 else "#EF5350" if z >= 2 else "#F7A9A8" if z >= 1
+                      else "#B0BEC5" for z in zplot["z"].fillna(0)]
+                fz.add_trace(go.Bar(x=zplot.index, y=zplot["z"], marker_color=zc, name="Z", showlegend=False), 2, 1)
+                for lvl, dash in [(1, "dot"), (-1, "dot"), (2, "dash"), (-2, "dash")]:
+                    fz.add_hline(y=lvl, line=dict(color="#787B86", width=1, dash=dash), row=2, col=1)
+                fz.update_layout(height=520, margin=dict(l=10, r=10, t=10, b=10), legend=dict(orientation="h", y=1.06),
+                                 bargap=0)
+                fz.update_yaxes(title_text="₹", row=1, col=1)
+                fz.update_yaxes(title_text="Z", row=2, col=1)
+                st.plotly_chart(fz, width="stretch")
+                st.caption("Z = (ln(price ÷ composite) − its mean) ÷ its standard deviation over the lookback; ≤ −1 = "
+                           "cheap, ≤ −2 = very cheap, by this stock's own history. The composite here is rebuilt only "
+                           "from methods that have yearly history (" + ", ".join(fair) + "), each using only data public "
+                           "at that date (60-day reporting lag), so it differs from the headline composite and from the "
+                           "Pine script's Z. Results days and DDM switches can move the composite without a price move.")
+                with st.expander("Method values over time"):
+                    st.line_chart(hc.drop(columns=["n_methods"]).iloc[-int(len(hc) * 0.6):])
+
         st.caption(f"Ke {pct(ke)} · WACC {pct(wacc_)} · g∞ {pct(g_term)} · {years} explicit years · "
                    f"generated {datetime.now():%d %b %Y %H:%M}. Educational tool, not investment advice.")

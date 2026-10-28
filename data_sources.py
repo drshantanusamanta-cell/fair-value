@@ -110,11 +110,12 @@ def screener_row(df: pd.DataFrame | None, *cands: str) -> pd.Series | None:
     return None
 
 
-def fetch_screener(symbol: str, prefer_consolidated: bool = True, timeout: int = 20) -> dict:
+def fetch_screener(symbol: str, prefer_consolidated: bool = True, timeout: int = 20, peers: bool = True,
+                   session=None) -> dict:
     out: dict[str, Any] = {"ok": False, "error": None, "url": None, "basis": None, "ratios": {}, "ratios_raw": {},
                            "pl": None, "bs": None, "cf": None, "shp": None, "peers": None, "about": None,
                            "warehouse_id": None}
-    sess = requests.Session()
+    sess = session or requests.Session()
     sess.headers.update(UA)
     variants = [("consolidated/", "Consolidated"), ("", "Standalone")]
     if not prefer_consolidated:
@@ -129,6 +130,9 @@ def fetch_screener(symbol: str, prefer_consolidated: bool = True, timeout: int =
             continue
         if r.status_code != 200:
             last_err = f"HTTP {r.status_code} for {url}"
+            out["status"] = r.status_code
+            if r.status_code == 429:
+                break
             continue
         soup = BeautifulSoup(r.text, "lxml")
         pl = _statement(soup, "profit-loss")
@@ -151,7 +155,9 @@ def fetch_screener(symbol: str, prefer_consolidated: bool = True, timeout: int =
         info = soup.select_one("#company-info")
         if info is not None:
             out["warehouse_id"] = info.get("data-warehouse-id")
-        if out["warehouse_id"]:
+        if not peers:
+            out["peers_error"] = "not requested"
+        elif out["warehouse_id"]:
             try:
                 pr = sess.get(f"https://www.screener.in/api/company/{out['warehouse_id']}/peers/", timeout=timeout)
                 if pr.status_code == 200:
@@ -429,6 +435,72 @@ def _annual(s: pd.Series | None) -> pd.Series | None:
     return pd.Series(vals, index=idx).sort_index() if idx else None
 
 
+def annual_histories(pl, bs, cf, bal, values: dict | None = None) -> dict:
+    """Year-by-year series built from Screener (10–12 fiscal years) with yfinance cash where it exists.
+
+    shares_annual: Net Profit ÷ EPS — Screener restates EPS for bonuses and splits, so this tracks the share count
+    on today's basis and picks up mergers and fresh issues (approximate: consolidated net profit includes the
+    minority share, so it can read a few percent high).
+    """
+    out: dict = {}
+    eps = _annual(screener_row(pl, "EPS in Rs", "EPS"))
+    npf = _annual(screener_row(pl, "Net Profit"))
+    if eps is not None and npf is not None:
+        both = pd.concat([npf * CR, eps], axis=1, keys=["np", "eps"]).dropna()
+        both = both[(both["eps"] > 0) & (both["np"] > 0)]
+        sh = (both["np"] / both["eps"]) if not both.empty else None
+        if sh is not None and not sh.empty:
+            # Noise filter: consolidated net profit includes the minority share, so the ratio wobbles by a few
+            # percent (≈10% in loss-making years). Within ±12% of the latest value → treat as unchanged; bigger
+            # gaps (mergers, fresh issues) are kept.
+            ref = float(sh.iloc[-1])
+            sh = sh.where((sh / ref - 1).abs() > 0.12, ref)
+        out["shares_annual"] = sh
+    else:
+        out["shares_annual"] = None
+    eq_cap, reserves = _annual(screener_row(bs, "Equity Capital")), _annual(screener_row(bs, "Reserves"))
+    if eq_cap is not None and reserves is not None:
+        equity = (eq_cap.add(reserves, fill_value=np.nan) * CR).dropna()
+        out["equity_annual"] = equity
+        sh = out["shares_annual"]
+        if sh is not None and not sh.empty:
+            sh_on = sh.reindex(sh.index.union(equity.index)).ffill().bfill().reindex(equity.index)
+            out["bvps_annual"] = (equity / sh_on).dropna()
+        else:
+            shares_now = (values or {}).get("shares")
+            out["bvps_annual"] = equity / shares_now if finite(shares_now) and shares_now else None
+    else:
+        out["equity_annual"] = out["bvps_annual"] = None
+    debt = _annual(screener_row(bs, "Borrowings", "Borrowing"))
+    debt = debt * CR if debt is not None else None
+    cash = yf_row(bal, "Cash Cash Equivalents And Short Term Investments", "Cash And Cash Equivalents")
+    if debt is not None:
+        cash_now = (values or {}).get("cash")
+        if cash is not None and not cash.dropna().empty:
+            c = cash.dropna()
+            c.index = pd.to_datetime(c.index)
+            c_on = c.reindex(c.index.union(debt.index)).sort_index().ffill().bfill().reindex(debt.index)
+            out["cash_history_years"] = int(len(c))
+        else:
+            c_on = pd.Series(cash_now if finite(cash_now) else 0.0, index=debt.index)
+            out["cash_history_years"] = 0
+        out["net_debt_annual"] = (debt - c_on).dropna()
+    else:
+        out["net_debt_annual"], out["cash_history_years"] = None, 0
+    op = screener_row(pl, "Operating Profit")          # banks show "Financing Profit" — not an EBITDA, skipped
+    out["ebitda_annual"] = _annual(op) * CR if op is not None and _annual(op) is not None else None
+    sales = _annual(screener_row(pl, "Sales", "Revenue"))
+    out["sales_annual_abs"] = sales * CR if sales is not None else None
+    pbt, intr = _annual(screener_row(pl, "Profit before tax")), _annual(screener_row(pl, "Interest"))
+    out["ebit_annual"] = ((pbt + intr) * CR).dropna() if pbt is not None and intr is not None else None
+    payout = _annual(screener_row(pl, "Dividend Payout"))
+    out["payout_annual"] = payout / 100 if payout is not None else None
+    out["dps_annual"] = (eps * payout / 100).dropna() if eps is not None and payout is not None else None
+    fcf_s = _annual(screener_row(cf, "Free Cash Flow"))
+    out["fcf_annual_scr"] = fcf_s * CR if fcf_s is not None else None
+    return out
+
+
 def build_fundamentals(yfd: dict, scr: dict, dh: dict) -> tuple[dict, pd.DataFrame, dict]:
     """Merge the three sources. Returns (values, provenance table, extras)."""
     info = yfd.get("info") or {}
@@ -496,11 +568,14 @@ def build_fundamentals(yfd: dict, scr: dict, dh: dict) -> tuple[dict, pd.DataFra
     add("ebitda", "Screener", _last(screener_row(pl, "Operating Profit", "Financing Profit")) * CR)
     add("ebitda", "yfinance", info.get("ebitda"))
 
-    # Cash flows
+    # Cash flows. Screener now publishes a "Free Cash Flow" row (10+ years); CFO + CFI is only a last resort
+    # because investing cash flow includes treasury investments, not just capex.
     yf_fcf = yf_row(cfs, "Free Cash Flow")
     add("fcf", "yfinance", _last(yf_fcf))
+    scr_fcf = screener_row(cf, "Free Cash Flow")
+    add("fcf", "Screener", _last(scr_fcf) * CR if scr_fcf is not None else None)
     cfo_s, cfi_s = screener_row(cf, "Cash from Operating"), screener_row(cf, "Cash from Investing")
-    if cfo_s is not None and cfi_s is not None:
+    if cfo_s is not None and cfi_s is not None and scr_fcf is None:
         add("fcf", "Screener (CFO+CFI proxy)", (_last(cfo_s) + _last(cfi_s)) * CR)
     add("cfo", "Screener", _last(cfo_s) * CR)
     add("cfo", "yfinance", _last(yf_row(cfs, "Operating Cash Flow")))
@@ -510,6 +585,8 @@ def build_fundamentals(yfd: dict, scr: dict, dh: dict) -> tuple[dict, pd.DataFra
     add("debt", "Screener", _last(screener_row(bs, "Borrowings", "Borrowing")) * CR)
     add("cash", "yfinance", _last(yf_row(bal, "Cash Cash Equivalents And Short Term Investments", "Cash And Cash Equivalents"))
         if yf_row(bal, "Cash Cash Equivalents And Short Term Investments", "Cash And Cash Equivalents") is not None else info.get("totalCash"))
+    mi_s = yf_row(bal, "Minority Interest")
+    add("minority", "yfinance", _last(mi_s))
     add("beta", "yfinance", info.get("beta"))
     add("forward_eps", "yfinance", info.get("forwardEps"))
     add("target_mean", "yfinance", info.get("targetMeanPrice"))
@@ -521,7 +598,8 @@ def build_fundamentals(yfd: dict, scr: dict, dh: dict) -> tuple[dict, pd.DataFra
         "default": ["Screener", "yfinance", "Dhan", "Screener (CFO+CFI proxy)"],
         "price": ["yfinance", "Screener"],
         "shares": ["Screener", "yfinance"],
-        "fcf": ["yfinance", "Screener (CFO+CFI proxy)"],
+        "fcf": ["Screener", "yfinance", "Screener (CFO+CFI proxy)"],
+        "minority": ["yfinance"],
         "debt": ["yfinance", "Screener"],
         "cash": ["yfinance"],
         "beta": ["yfinance"],
@@ -532,7 +610,7 @@ def build_fundamentals(yfd: dict, scr: dict, dh: dict) -> tuple[dict, pd.DataFra
         "bvps": "Book value / share (₹)", "roe": "ROE", "pe_reported": "P/E (reported)", "sector_pe": "Sector P/E",
         "dps": "Dividend / share (₹)", "payout": "Payout ratio", "ebit": "EBIT TTM (₹)", "interest": "Interest (₹)",
         "tax_rate": "Tax rate", "revenue": "Revenue (₹)", "ebitda": "EBITDA / Op. profit (₹)", "fcf": "Free cash flow (₹)",
-        "cfo": "Cash from operations (₹)", "debt": "Total debt (₹)", "cash": "Cash & equivalents (₹)", "beta": "Beta",
+        "cfo": "Cash from operations (₹)", "debt": "Total debt (₹)", "cash": "Cash & equivalents (₹)", "minority": "Minority interest (₹)", "beta": "Beta",
         "forward_eps": "Forward EPS (₹)", "target_mean": "Analyst target — mean (₹)", "target_high": "Analyst target — high (₹)",
         "target_low": "Analyst target — low (₹)", "analysts": "No. of analysts",
     }
@@ -550,11 +628,13 @@ def build_fundamentals(yfd: dict, scr: dict, dh: dict) -> tuple[dict, pd.DataFra
                      "Dhan": srcs.get("Dhan"), "Max disagreement": spread})
     values["net_debt"] = (values["debt"] if finite(values["debt"]) else 0.0) - (values["cash"] if finite(values["cash"]) else 0.0)
 
-    # Histories for growth & bands
+    # Histories for growth, bands and the composite Z-score (absolute ₹, indexed by fiscal year-end)
+    hist_series = annual_histories(pl, bs, cf, bal, values)
     extras = {
+        **hist_series,
         "eps_annual": _annual(screener_row(pl, "EPS in Rs", "EPS")),
         "sales_annual": _annual(screener_row(pl, "Sales", "Revenue")),
-        "fcf_annual": yf_fcf,
+        "fcf_annual": hist_series.get("fcf_annual_scr") if hist_series.get("fcf_annual_scr") is not None else yf_fcf,
         "cfo_annual": _annual(cfo_s),
         "name": info.get("longName") or info.get("shortName") or dh.get("name"),
         "sector": info.get("sector") or dx.get("sector"),

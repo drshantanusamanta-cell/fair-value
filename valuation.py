@@ -61,6 +61,7 @@ def series_cagr(values: Sequence[float], max_years: int = 5) -> tuple[float | No
 # ───────────────────────────── DCF ─────────────────────────────
 def dcf(base_cf: float, growths: Sequence[float], rate: float, g_term: float,
         net_debt: float = 0.0, shares: float = 1.0, mid_year: bool = False) -> dict:
+    # For an FCFF valuation pass net_debt = net debt + minority interest (both are claims ahead of shareholders).
     """Two-stage DCF. `base_cf` is the last actual (year-0) cash flow; growths apply from year 1."""
     if rate <= g_term:
         raise ValueError("Discount rate must exceed terminal growth.")
@@ -174,35 +175,85 @@ def graham_number(eps: float, bvps: float) -> float | None:
     return math.sqrt(22.5 * eps * bvps)
 
 
-def graham_growth(eps: float, g: float, bond_yield_pct: float) -> float | None:
-    """Revised Graham formula: EPS × (8.5 + 2g) × 4.4 / Y, with g and Y in percent."""
-    if not _ok(eps, g, bond_yield_pct) or eps <= 0 or bond_yield_pct <= 0:
+def graham_growth(eps: float, g: float, bond_yield_pct: float, form: str = "book") -> float | None:
+    """Graham growth formula, g in decimals, Y in percent.
+
+    form="book":   EPS × (8.5 + 2g)            — The Intelligent Investor, Ch. 11 (default, as in the Pine script)
+    form="yield":  EPS × (8.5 + 2g) × 4.4 / Y  — later revision, not in the book; at Y ≈ 7.4% it is ~40% lower
+    """
+    if not _ok(eps, g) or eps <= 0:
         return None
-    return eps * (8.5 + 2 * g * 100) * 4.4 / bond_yield_pct
+    base = eps * (8.5 + 2 * g * 100)
+    if form == "book":
+        return base
+    if not _ok(bond_yield_pct) or bond_yield_pct <= 0:
+        return None
+    return base * 4.4 / bond_yield_pct
 
 
-def epv(ebit: float, tax: float, cost_of_capital: float, net_debt: float, shares: float) -> float | None:
-    """Earnings Power Value: no-growth value of today's normalised after-tax operating earnings."""
+def avg_last(values: Sequence[float] | pd.Series | None, n: int = 3) -> float | None:
+    """Average of the last n values (oldest → newest); None unless all n are present."""
+    if values is None:
+        return None
+    v = list(values)[-n:]
+    if len(v) < n or not all(_ok(x) for x in v):
+        return None
+    return float(np.mean(v))
+
+
+def epv(ebit: float, tax: float, cost_of_capital: float, net_debt: float, shares: float,
+        minority: float = 0.0) -> float | None:
+    """Earnings Power Value: no-growth value of today's normalised after-tax operating earnings,
+    less net debt and minority interest (the part of subsidiaries owned by outsiders)."""
     if not _ok(ebit, tax, cost_of_capital, shares) or ebit <= 0 or shares <= 0 or cost_of_capital <= 0:
         return None
-    return (ebit * (1 - tax) / cost_of_capital - (net_debt or 0.0)) / shares
+    return (ebit * (1 - tax) / cost_of_capital - (net_debt or 0.0) - (minority or 0.0)) / shares
 
 
 # ───────────────────────────── Multiples ─────────────────────────────
+def _clean_prices(prices: pd.Series) -> pd.Series:
+    p = prices.dropna().copy()
+    p.index = pd.to_datetime(p.index)
+    if getattr(p.index, "tz", None) is not None:
+        p.index = p.index.tz_localize(None)
+    return p.sort_index()
+
+
+def on_dates(annual: pd.Series | None, index: pd.DatetimeIndex, report_lag_days: int = 60) -> pd.Series:
+    """Step series: each fiscal-year value counts from `report_lag_days` after year-end (no look-ahead)."""
+    if annual is None or annual.dropna().empty:
+        return pd.Series(np.nan, index=index)
+    a = annual.dropna().copy()
+    a.index = pd.to_datetime(a.index) + pd.Timedelta(days=report_lag_days)
+    a = a.sort_index()
+    a = a[~a.index.duplicated(keep="last")]
+    return a.reindex(index.union(a.index)).ffill().reindex(index)
+
+
+def rolling_fy_mean(annual: pd.Series | None, n: int = 5, min_n: int = 3) -> pd.Series | None:
+    """Mid-cycle series: at each fiscal year, the mean of the last n years (needs at least min_n)."""
+    if annual is None or annual.dropna().empty:
+        return None
+    a = annual.dropna().sort_index()
+    return a.rolling(n, min_periods=min_n).mean().dropna()
+
+
 def pe_band(prices: pd.Series, eps_annual: pd.Series, years: float = 5.0, report_lag_days: int = 60,
             cap: float = 150.0) -> dict | None:
     """Historical P/E band using annual EPS made public `report_lag_days` after fiscal year-end.
 
     prices: Series indexed by date. eps_annual: Series indexed by fiscal year-end date.
     """
-    if prices is None or eps_annual is None or prices.empty or eps_annual.dropna().empty:
+    return per_share_band(prices, eps_annual, years, report_lag_days, cap, "pe")
+
+
+def per_share_band(prices: pd.Series, per_share_annual: pd.Series, years: float = 5.0, report_lag_days: int = 60,
+                   cap: float = 150.0, label: str = "multiple") -> dict | None:
+    """Price ÷ an annual per-share figure (EPS → P/E, BVPS → P/B), its mean, σ and Z over `years`."""
+    if prices is None or per_share_annual is None or prices.empty or per_share_annual.dropna().empty:
         return None
-    p = prices.dropna().copy()
-    p.index = pd.to_datetime(p.index).tz_localize(None) if getattr(p.index, "tz", None) else pd.to_datetime(p.index)
-    e = eps_annual.dropna().copy()
-    e.index = pd.to_datetime(e.index) + pd.Timedelta(days=report_lag_days)
-    e = e.sort_index()
-    eps_on_date = e.reindex(p.index.union(e.index)).ffill().reindex(p.index)
+    p = _clean_prices(prices)
+    eps_on_date = on_dates(per_share_annual, p.index, report_lag_days)
     pe = (p / eps_on_date).where(eps_on_date > 0).clip(upper=cap)
     start = p.index.max() - pd.Timedelta(days=int(365.25 * years))
     window = pe[pe.index >= start].dropna()
@@ -211,7 +262,7 @@ def pe_band(prices: pd.Series, eps_annual: pd.Series, years: float = 5.0, report
     mean, sd = float(window.mean()), float(window.std())
     current = float(window.iloc[-1])
     return {
-        "series": pd.DataFrame({"price": p, "eps": eps_on_date, "pe": pe}),
+        "series": pd.DataFrame({"price": p, "eps": eps_on_date, "pe": pe, "metric": eps_on_date, "multiple": pe}),
         "mean": mean, "std": sd, "median": float(window.median()),
         "current": current, "z": (current - mean) / sd if sd > 0 else float("nan"),
         "window_start": start,
@@ -221,6 +272,105 @@ def pe_band(prices: pd.Series, eps_annual: pd.Series, years: float = 5.0, report
 def median_of(values: Iterable[float]) -> float | None:
     v = [x for x in values if _ok(x) and x > 0]
     return float(np.median(v)) if v else None
+
+
+def ev_band(prices: pd.Series, metric_annual: pd.Series, shares_annual: pd.Series | None, shares_now: float,
+            net_debt_annual: pd.Series | None, net_debt_now: float, minority: float = 0.0, years: float = 5.0,
+            report_lag_days: int = 60, cap: float = 60.0) -> dict | None:
+    """Historical EV ÷ metric band (EBITDA, mid-cycle EBITDA or sales). EV on each day =
+    price × shares + net debt + minority interest, with the annual figures public `report_lag_days` after year-end.
+    Amounts in absolute ₹. Missing share / net-debt history falls back to today's figure (flagged by the caller)."""
+    if prices is None or metric_annual is None or prices.empty or metric_annual.dropna().empty or not _ok(shares_now):
+        return None
+    p = _clean_prices(prices)
+    m = on_dates(metric_annual, p.index, report_lag_days)
+    sh = on_dates(shares_annual, p.index, report_lag_days).fillna(shares_now) if shares_annual is not None \
+        else pd.Series(shares_now, index=p.index)
+    nd = on_dates(net_debt_annual, p.index, report_lag_days) if net_debt_annual is not None \
+        else pd.Series(np.nan, index=p.index)
+    nd = nd.bfill().fillna(net_debt_now if _ok(net_debt_now) else 0.0)
+    ev = p * sh + nd + (minority or 0.0)
+    mult = (ev / m).where((m > 0) & (ev > 0)).clip(upper=cap)
+    start = p.index.max() - pd.Timedelta(days=int(365.25 * years))
+    window = mult[mult.index >= start].dropna()
+    if len(window) < 20:
+        return None
+    mean, sd = float(window.mean()), float(window.std())
+    current = float(window.iloc[-1])
+    return {"series": pd.DataFrame({"price": p, "metric": m, "shares": sh, "net_debt": nd, "ev": ev, "multiple": mult}),
+            "mean": mean, "std": sd, "median": float(window.median()), "current": current,
+            "z": (current - mean) / sd if sd > 0 else float("nan"), "window_start": start}
+
+
+def ev_fair_value(metric: float, multiple: float, net_debt: float, minority: float, shares: float) -> float | None:
+    if not _ok(metric, multiple, shares) or metric <= 0 or shares <= 0:
+        return None
+    fv = (metric * multiple - (net_debt or 0.0) - (minority or 0.0)) / shares
+    return fv if fv > 0 else None
+
+
+def ddm_steady_payer(dps_annual: pd.Series | None, price: float, dps_now: float, payout_now: float,
+                     years: int = 3, min_yield: float = 0.02, payout_lo: float = 0.30, payout_hi: float = 0.90,
+                     max_cut: float = 0.25) -> tuple[bool, str]:
+    """Same auto rule as the Pine script: dividend paid in each of the last `years` fiscal years, no year-on-year
+    cut bigger than `max_cut`, yield ≥ `min_yield`, payout within [payout_lo, payout_hi]."""
+    d = dps_annual.dropna() if dps_annual is not None else pd.Series(dtype=float)
+    if len(d) < years:
+        return False, f"fewer than {years} years of dividend history"
+    last = list(d.iloc[-years:])
+    if any(x <= 0 for x in last):
+        return False, "missed a dividend year"
+    worst = min(b / a for a, b in zip(last[:-1], last[1:]) if a > 0) if len(last) > 1 else 1.0
+    if worst < 1 - max_cut:
+        return False, f"dividend cut {(1 - worst) * 100:.0f}%"
+    yld = dps_now / price if _ok(dps_now, price) and price > 0 else None
+    if yld is None or yld < min_yield:
+        return False, f"yield {yld * 100:.1f}% < {min_yield * 100:.0f}%" if yld is not None else "yield n/a"
+    if not _ok(payout_now) or not payout_lo <= payout_now <= payout_hi:
+        return False, (f"payout {payout_now * 100:.0f}% outside {payout_lo * 100:.0f}–{payout_hi * 100:.0f}%"
+                       if _ok(payout_now) else "payout n/a")
+    return True, f"steady payer · yield {yld * 100:.1f}% · payout {payout_now * 100:.0f}%"
+
+
+def rolling_band_fair(metric_on_date: pd.Series, multiple: pd.Series, years: float, min_years: float = 2.0) -> pd.Series:
+    """Fair value on each date = metric × the mean multiple of the trailing `years` (only data up to that date).
+    Needs at least `min_years` of multiples before it starts."""
+    m = multiple.dropna()
+    if m.empty:
+        return pd.Series(np.nan, index=metric_on_date.index)
+    win = f"{int(365.25 * years)}D"
+    mean = m.rolling(win).mean()
+    mean = mean[mean.index >= m.index.min() + pd.Timedelta(days=int(365.25 * min_years))]
+    mean = mean.reindex(metric_on_date.index).ffill()
+    return metric_on_date * mean
+
+
+def history_composite(fair: dict[str, pd.Series]) -> pd.DataFrame:
+    """Daily fair-value series per method → DataFrame with a 'composite' column (median of positive values)."""
+    df = pd.DataFrame({k: s for k, s in fair.items() if s is not None})
+    if df.empty:
+        return df
+    df = df.where(df > 0)
+    df["composite"] = df.median(axis=1, skipna=True)
+    df["n_methods"] = df.drop(columns=["composite"]).notna().sum(axis=1)
+    return df
+
+
+def gap_zscore(price: pd.Series, composite: pd.Series, years: float = 3.0, freq: str = "W") -> pd.DataFrame:
+    """Z of ln(price ÷ composite) against its own trailing mean and σ over `years` — the Pine script's gap mode.
+    freq "W" = weekly closes (Friday), "D" = daily. The Z starts only once a full window of history exists."""
+    df = pd.DataFrame({"price": _clean_prices(price), "fair": composite}).dropna()
+    if df.empty:
+        return pd.DataFrame(columns=["price", "fair", "gap", "mean", "std", "z"])
+    if freq == "W":
+        df = df.resample("W-FRI").last().dropna()
+    df["gap"] = np.log(df["price"] / df["fair"])
+    win = f"{int(365.25 * years)}D"
+    df["mean"] = df["gap"].rolling(win).mean()
+    df["std"] = df["gap"].rolling(win).std()
+    full = df.index >= df.index.min() + pd.Timedelta(days=int(365.25 * years))
+    df["z"] = ((df["gap"] - df["mean"]) / df["std"]).where(full & (df["std"] > 0))
+    return df
 
 
 # ───────────────────────────── SOTP ─────────────────────────────
