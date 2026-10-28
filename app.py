@@ -236,6 +236,22 @@ def get_group_table() -> dict:
     return gp.load_list()
 
 
+# ───────────────────────────── page switch ─────────────────────────────
+# The scanner lives in scanner_page.py next to this file (no pages/ folder needed — GitHub's web upload
+# cannot create folders). ?page=scanner in the URL opens it directly.
+PAGES = ["⚖️ Fair Value Workbench", "🔎 Nifty 500 Z Scanner"]
+_start = 1 if str(st.query_params.get("page", "")).lower() == "scanner" else 0
+with st.sidebar:
+    page = st.radio("Page", PAGES, index=_start, key="fv_page", label_visibility="collapsed")
+    st.divider()
+if page == PAGES[1]:
+    st.query_params["page"] = "scanner"
+    import runpy
+    runpy.run_path(str(Path(__file__).parent / "scanner_page.py"), run_name="scanner_page")
+    st.stop()
+if "page" in st.query_params:
+    del st.query_params["page"]
+
 # ───────────────────────────── sidebar ─────────────────────────────
 with st.sidebar:
     st.header("⚖️ Fair Value Workbench")

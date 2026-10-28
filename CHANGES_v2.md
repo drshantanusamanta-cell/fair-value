@@ -36,8 +36,8 @@ mid-year discounting), DCF sensitivity, reverse DCF, residual income, peers, SOT
 
 # v2.1 — Nifty 500 Z Scanner (28 Oct 2026)
 
-New page **Nifty 500 Z Scanner** (Streamlit sidebar navigation; files `pages/2_Nifty_500_Z_Scanner.py`,
-`scanner_core.py`, `zcore.py`).
+New page **Nifty 500 Z Scanner**, opened from the page switch at the top of the sidebar (or `?page=scanner` in the
+URL). Files `scanner_page.py`, `scanner_core.py`, `zcore.py` — all in the main folder; no `pages/` folder is needed.
 
 - Scores all 500 stocks with the same history-based composite and weekly Z as the Workbench Summary tab
   (`zcore.py` is now the single engine for both), using each stock's valuation group.
