@@ -7,7 +7,9 @@ No Streamlit here, so it can be tested or run from a script. Data:
 """
 from __future__ import annotations
 
+import io
 import pickle
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
@@ -19,10 +21,15 @@ import pandas as pd
 
 import data_sources as ds
 import groups as gp
+import valuation as v
 import zcore as zc
 
 CACHE = Path(__file__).parent / ".scan_cache"
+DEFAULT_WATCHLIST = Path(__file__).parent / "default_watchlist.txt"
+UPLOADED_WATCHLIST = CACHE / "uploaded_watchlist.txt"
 CR = 1e7
+SYMBOL_COLS = ["symbol", "nse symbol", "nse_symbol", "ticker", "tradingsymbol", "trading symbol", "scrip", "stock", "code"]
+LIST_COLS = ["list", "screen", "section", "watchlist", "group", "tag"]
 
 
 def _safe(sym: str) -> str:
@@ -36,14 +43,84 @@ def universe() -> pd.DataFrame:
         ["symbol", "company", "nse_industry", "code"]].reset_index(drop=True)
 
 
+def _tokens_tradingview(text: str) -> list[tuple[str, str]]:
+    """TradingView watchlist export: comma/newline separated EXCHANGE:SYMBOL, sections as '###Name (n)'."""
+    out, sec = [], ""
+    for tok in re.split(r"[,\n\r;]+", text):
+        tok = tok.strip().strip('"').strip()
+        if not tok:
+            continue
+        if tok.startswith("###"):
+            sec = re.sub(r"\s*\(\d+\)\s*$", "", tok[3:]).strip()
+            continue
+        out.append((tok, sec))
+    return out
+
+
+def _tokens_csv(text: str) -> list[tuple[str, str]] | None:
+    """A CSV with a header row containing a symbol column (Symbol, Ticker, NSE symbol…); optional list column."""
+    try:
+        df = pd.read_csv(io.StringIO(text), dtype=str)
+    except Exception:
+        return None
+    cols = {c.strip().lower(): c for c in df.columns}
+    sym_col = next((cols[c] for c in SYMBOL_COLS if c in cols), None)
+    if sym_col is None:
+        return None
+    list_col = next((cols[c] for c in LIST_COLS if c in cols), None)
+    return [(str(s), str(l) if list_col and pd.notna(l) else "")
+            for s, l in zip(df[sym_col], df[list_col] if list_col else [""] * len(df)) if pd.notna(s)]
+
+
+def parse_watchlist(text: str) -> tuple[pd.DataFrame, list[str]]:
+    """Watchlist text (TradingView .txt export or CSV) → (universe DataFrame, unrecognised tokens).
+
+    Accepts NSE:SYMBOL, SYMBOL, SYMBOL.NS and TradingView spellings (M_M → M&M, BAJAJ_AUTO → BAJAJ-AUTO).
+    Symbols outside the Nifty 500 list are kept and valued as General (flagged in the 'In list' column)."""
+    full = universe()
+    by_nse = {s: i for i, s in enumerate(full["symbol"])}
+    tv = pd.read_csv(gp.CSV_PATH, dtype=str)
+    tv2nse = dict(zip(tv["TradingView symbol"].str.upper(), tv["NSE symbol"]))
+    toks = _tokens_csv(text) if "," in text.splitlines()[0] and not text.lstrip().startswith(("###", "NSE:", "BSE:")) else None
+    if toks is None:
+        toks = _tokens_tradingview(text)
+    rows, seen, bad = [], {}, []
+    for raw, sec in toks:
+        s = raw.split(":")[-1].strip().upper()
+        if s.endswith(".NS"):
+            s = s[:-3]
+        if s in ("SYMBOL", "TICKER", "NSE SYMBOL", "STOCK", "SCRIP"):      # a header line — skip silently
+            continue
+        if raw.upper().startswith("BSE:") or not re.fullmatch(r"[A-Z0-9&_\-]{1,20}", s or ""):
+            bad.append(raw)
+            continue
+        nse = s if s in by_nse else tv2nse.get(s, s)
+        if nse in seen:                                   # duplicate → merge list names
+            r = rows[seen[nse]]
+            if sec and sec not in r["list"].split("; "):
+                r["list"] = f"{r['list']}; {sec}" if r["list"] else sec
+            continue
+        seen[nse] = len(rows)
+        if nse in by_nse:
+            f = full.iloc[by_nse[nse]]
+            rows.append({"symbol": nse, "company": f["company"], "nse_industry": f["nse_industry"], "code": f["code"],
+                         "list": sec, "in_list": True})
+        else:
+            rows.append({"symbol": nse, "company": nse, "nse_industry": "", "code": "GEN", "list": sec, "in_list": False})
+    return pd.DataFrame(rows, columns=["symbol", "company", "nse_industry", "code", "list", "in_list"]), bad
+
+
 def _fresh(path: Path, max_age: timedelta) -> bool:
     return path.exists() and datetime.now() - datetime.fromtimestamp(path.stat().st_mtime) < max_age
 
 
-def cache_status() -> dict:
+def cache_status(symbols: list[str] | None = None) -> dict:
     out = {}
+    want = {f"{_safe(s)}.pkl" for s in symbols} if symbols is not None else None
     for kind in ("prices", "screener"):
         files = list((CACHE / kind).glob("*.pkl")) if (CACHE / kind).exists() else []
+        if want is not None:
+            files = [f for f in files if f.name in want]
         out[kind] = {"count": len(files),
                      "newest": max((datetime.fromtimestamp(f.stat().st_mtime) for f in files), default=None),
                      "oldest": min((datetime.fromtimestamp(f.stat().st_mtime) for f in files), default=None)}
@@ -211,10 +288,12 @@ def score_one(sym: str, code: str, close: pd.Series | None, scr: dict | None, p:
 
 
 def add_size(df: pd.DataFrame) -> pd.DataFrame:
-    """Large = top 100 by market cap within the list, Mid = next 150, Small = the rest (SEBI-style ranks)."""
+    """Large / Mid / Small by market cap, using the same approximate cut-offs as the Workbench
+    (valuation.SIZE_RULES: ≥ ₹1,00,000 Cr large, ≥ ₹30,000 Cr mid). Independent of which stocks are scanned."""
     df = df.copy()
-    r = df["Mcap (₹ Cr)"].rank(ascending=False, method="first")
-    df["Size"] = np.where(r <= 100, "Large", np.where(r <= 250, "Mid", np.where(r.notna(), "Small", "—")))
+    lg, md = v.SIZE_RULES["Large cap"]["min_cr"], v.SIZE_RULES["Mid cap"]["min_cr"]
+    m = pd.to_numeric(df["Mcap (₹ Cr)"], errors="coerce")
+    df["Size"] = np.where(m >= lg, "Large", np.where(m >= md, "Mid", np.where(m.notna(), "Small", "—")))
     return df
 
 
@@ -222,9 +301,13 @@ def run_scan(prices: dict[str, pd.Series], funds: dict[str, dict], p: dict, uni:
              progress: Callable[[float, str], None] | None = None) -> pd.DataFrame:
     uni = universe() if uni is None else uni
     rows = []
-    for i, (sym, comp, code) in enumerate(zip(uni["symbol"], uni["company"], uni["code"])):
+    lists = uni["list"] if "list" in uni else pd.Series([""] * len(uni))
+    inl = uni["in_list"] if "in_list" in uni else pd.Series([True] * len(uni))
+    for i, (sym, comp, code, lst, in_n500) in enumerate(zip(uni["symbol"], uni["company"], uni["code"], lists, inl)):
         row = score_one(sym, code, prices.get(sym), funds.get(sym), p)
         row["Company"] = comp
+        row["List"] = lst or ""
+        row["In Nifty 500 list"] = bool(in_n500)
         rows.append(row)
         if progress and (i % 10 == 0 or i == len(uni) - 1):
             progress((i + 1) / len(uni), f"Scoring {i + 1}/{len(uni)}")

@@ -54,3 +54,18 @@ URL). Files `scanner_page.py`, `scanner_core.py`, `zcore.py` — all in the main
 Scanner limits: one Ke / WACC / growth setting for all stocks; net debt = Screener borrowings (no cash) and no
 minority deduction in the scan (applied to past and present EVs alike); on Streamlit Community Cloud the cache is
 wiped when the app restarts, so the first scan after a restart downloads everything again.
+
+# v2.2 — Watchlist scanning (28 Oct 2026)
+
+- The scanner (now **🔎 Valuation Z Scanner** in the page switch) scans **`default_watchlist.txt`** by default — the
+  183-stock MDSPORT / MPTDS / Graham passers list. Replace that file on GitHub (same name) to change the default
+  permanently.
+- **Upload a watchlist** on the scanner page to override it: a CSV with a Symbol (or Ticker / NSE symbol) column and
+  optional List / Screen column, or a TradingView watchlist export (.txt, sections as `###Name`). Accepts NSE:SYMBOL,
+  SYMBOL, SYMBOL.NS and TradingView spellings (M_M, BAJAJ_AUTO). The upload stays the default until you click
+  **Remove uploaded watchlist** (on Streamlit Cloud it is lost when the app restarts).
+- **Full Nifty 500** remains available as a third option.
+- New **List / screen** filter and **List** column (a stock in several sections shows all of them).
+- Symbols outside the Nifty 500 list are scanned and valued as General (flagged); BSE codes are skipped.
+- **Size** is now by market cap (Large ≥ ₹1,00,000 Cr, Mid ≥ ₹30,000 Cr — the Workbench cut-offs), so it no longer
+  depends on which stocks are scanned. For watchlists all sizes are shown by default.
